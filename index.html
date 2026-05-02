@@ -9,18 +9,37 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         :root {
+            /* Desktop Sizes (Default) */
             --cell-size: 110px; --gap: 12px;
             --viz-offset: -85px; --viz-size: 64px;
-            --shape-block-size: 28px; /* Default size for shapes on the BOARD */
+            --shape-block-size: 26px;
             --bg-color: #f0f4f8; --text-primary: #0f172a; --text-secondary: #64748b;
         }
 
+        /* Tablet / Large Phones */
         @media (max-width: 600px) {
-            :root { --cell-size: 80px; --gap: 8px; --viz-offset: -60px; --viz-size: 46px; --shape-block-size: 22px; }
+            :root { --cell-size: 80px; --gap: 8px; --viz-offset: -60px; --viz-size: 46px; --shape-block-size: 20px; }
         }
 
+        /* Small Phones */
         @media (max-width: 400px) {
-            :root { --cell-size: 65px; --gap: 6px; --viz-offset: -50px; --viz-size: 38px; --shape-block-size: 18px; }
+            :root { --cell-size: 65px; --gap: 6px; --viz-offset: -50px; --viz-size: 38px; --shape-block-size: 16px; }
+        }
+
+        /* HEIGHT-AWARE CSS FOR PC: Scales game down to fit perfectly on laptops/short screens */
+        @media (max-height: 850px) and (min-width: 601px) {
+            :root { --cell-size: 90px; --gap: 10px; --viz-offset: -70px; --viz-size: 54px; --shape-block-size: 22px; }
+            body { padding: 15px 10px !important; }
+            .board-wrapper { margin: 25px auto 40px auto !important; }
+            p { margin-bottom: 15px !important; }
+            .controls { margin-bottom: 20px !important; }
+        }
+
+        @media (max-height: 700px) and (min-width: 601px) {
+            :root { --cell-size: 75px; --gap: 8px; --viz-offset: -60px; --viz-size: 46px; --shape-block-size: 18px; }
+            h1 { font-size: 1.4rem !important; margin-bottom: 4px !important; }
+            p { font-size: 0.85rem !important; margin-bottom: 10px !important; }
+            .board-wrapper { margin: 20px auto 30px auto !important; }
         }
 
         /* BASE STYLES */
@@ -30,7 +49,13 @@
             padding: 30px 10px; text-align: center; display: flex; flex-direction: column; align-items: center; 
             user-select: none; -webkit-user-select: none; overscroll-behavior-y: contain; overflow-x: hidden;
             transition: background-color 1s ease; 
+            
+            /* HIDE SCROLLBARS */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
+        body::-webkit-scrollbar { display: none; /* Chrome, Safari, Opera */ }
+
         body.game-won { background-color: #fefce8; }
         
         h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
@@ -71,13 +96,7 @@
         .cell.has-shape::after { opacity: 0; }
         .cell.success-cell { background-color: #ecfdf5; border-color: #10b981; box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.15); border-style: solid; }
         .cell.error-cell { background-color: #fef2f2; border-color: #ef4444; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); border-style: solid; }
-        
-        /* Shape formatting specifically when inside a board cell */
-        .cell .shape-container { 
-            height: 100%; min-height: 100%; width: 100%; padding: 0; 
-            box-shadow: none; border: none; background: transparent; 
-            pointer-events: none; transform: scale(1); 
-        }
+        .cell .shape-container { height: auto; padding: 0; box-shadow: none; border: none; background: transparent; pointer-events: none; transform: scale(1.1);}
 
         /* SOLUTION VISUALIZERS */
         .solution-box { 
@@ -100,9 +119,8 @@
 
         /* NATIVE POLYOMINO RENDERER */
         .shape-container { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            min-height: 110px; height: 100%; width: 100%; background: #fff; 
-            padding: 12px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 2px solid #f1f5f9; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90px; background: #fff; 
+            padding: 15px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 2px solid #f1f5f9; 
             cursor: pointer; transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s; touch-action: manipulation;
         }
         .shape-container:active { transform: scale(0.92); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-color: #e2e8f0; }
@@ -119,9 +137,6 @@
         .modal-overlay.active { visibility: visible; opacity: 1; pointer-events: auto; transition: opacity 0.3s ease, visibility 0s 0s; }
         
         .modal-content {
-            /* Context-Aware CSS: Scales shapes down smoothly ONLY when they are inside the inventory */
-            --shape-block-size: 20px; 
-            
             background: #fff; width: 100%; max-width: 500px; margin: auto; border-radius: 24px; padding: 20px; 
             transform: scale(0.95); opacity: 0; transition: transform 0.3s cubic-bezier(0.2, 0.85, 0.3, 1), opacity 0.3s ease;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 80vh; 
@@ -130,14 +145,10 @@
 
         @media (max-width: 600px) {
             .modal-content {
-                --shape-block-size: 18px; 
                 margin: 0; margin-top: auto; border-radius: 28px 28px 0 0; transform: translateY(100%); opacity: 1;
                 padding-bottom: 35px; max-height: 85vh; transition: transform 0.35s cubic-bezier(0.2, 0.85, 0.3, 1);
             }
             .modal-overlay.active .modal-content { transform: translateY(0); }
-        }
-        @media (max-width: 400px) {
-            .modal-content { --shape-block-size: 14px; }
         }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; flex-shrink: 0;}
@@ -168,7 +179,7 @@
         .tab-btn.active[data-size="8"] { background: #2e86de; color: white; border-color: #2e86de; box-shadow: 0 4px 15px rgba(46, 134, 222, 0.3); } 
         .tab-btn.active[data-size="9"] { background: #8395a7; color: white; border-color: #8395a7; box-shadow: 0 4px 15px rgba(131, 149, 167, 0.3); } 
 
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 15px; padding: 5px; overflow-y: auto; align-content: flex-start; flex-grow: 1; scrollbar-width: none; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 15px; padding: 5px; overflow-y: auto; align-content: flex-start; flex-grow: 1; scrollbar-width: none; }
         .gallery::-webkit-scrollbar { display: none; }
 
         @media (hover: hover) {
@@ -248,7 +259,7 @@
             { id: 'sol-diag-main', cells: [0, 4, 8] }, { id: 'sol-diag-anti', cells: [2, 4, 6] }
         ];
 
-        // GLOBAL OPTIMIZATION: Pre-calculate all geometric rotations and bounding boxes instantly on load
+        // GLOBAL OPTIMIZATION
         const STATIC_GEOMETRY_CACHE = {};
         const PACKING_CACHE = {}; 
         
