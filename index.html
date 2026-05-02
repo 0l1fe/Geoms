@@ -25,7 +25,7 @@
             }
         }
 
-        /* Small Phones (iPhone SE, older Androids) - Guarantees NO cutoff */
+        /* Small Phones (iPhone SE, older Androids) */
         @media (max-width: 400px) {
             :root {
                 --cell-size: 65px;
@@ -37,7 +37,6 @@
         }
 
         body { 
-            /* Native Rounded System Fonts */
             font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f0f4f8; 
             color: #1e293b; 
@@ -84,7 +83,6 @@
         }
         .board.board-won { border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.4); background: #fffdf2; }
         
-        /* UPDATED: Solid Native Trays instead of Dashed Dots */
         .cell { 
             width: var(--cell-size); height: var(--cell-size); background: #f8fafc; 
             border: 2px solid #e2e8f0; border-radius: 16px; display: flex; 
@@ -97,13 +95,11 @@
         .cell::after { content: '+'; font-size: 28px; font-weight: 300; color: #cbd5e1; position: absolute; z-index: 1; transition: opacity 0.2s; pointer-events: none; }
         .cell.has-shape::after { opacity: 0; }
 
-        /* Unified Success/Error Glows */
         .cell.success-cell { background-color: #ecfdf5; border-color: #10b981; box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.15); border-style: solid; }
         .cell.error-cell { background-color: #fef2f2; border-color: #ef4444; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); border-style: solid; }
 
         .cell .shape-container { height: auto; padding: 0; box-shadow: none; border: none; background: transparent; z-index: 2; pointer-events: none; transform: scale(1.1);}
 
-        /* Solid Geometric Solution Visualizers */
         .solution-box { 
             position: absolute; width: var(--viz-size); height: var(--viz-size); 
             display: flex; align-items: center; justify-content: center; background: #ffffff; 
@@ -115,7 +111,6 @@
         .sol-grid { display: grid; gap: 0; width: 100%; height: 100%; border-radius: 4px; overflow: hidden; }
         .sol-cell { width: 100%; height: 100%; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.05); }
 
-        /* Positioning Logic */
         #sol-row-0 { top: calc(var(--cell-size) * 0.5 - var(--viz-size)/2 + 14px); right: var(--viz-offset); }
         #sol-row-1 { top: calc(var(--cell-size) * 1.5 + var(--gap) - var(--viz-size)/2 + 14px); right: var(--viz-offset); }
         #sol-row-2 { top: calc(var(--cell-size) * 2.5 + var(--gap)*2 - var(--viz-size)/2 + 14px); right: var(--viz-offset); }
@@ -125,7 +120,6 @@
         #sol-diag-main { bottom: var(--viz-offset); right: var(--viz-offset); }
         #sol-diag-anti { bottom: var(--viz-offset); left: var(--viz-offset); } 
 
-        /* Solid Native Polyomino Shapes */
         .shape-container { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
             height: 90px; background: #ffffff; padding: 15px; border-radius: 16px; 
@@ -138,16 +132,19 @@
         .block-cell { width: var(--shape-block-size); height: var(--shape-block-size); }
         .block-filled { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15); }
 
-        /* Frosted Glass Modal */
+        /* JUMP FIX: Transition timing updated for perfect modal animations */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(15, 23, 42, 0.4); z-index: 1000; display: flex; 
-            visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0.3s; 
+            visibility: hidden; opacity: 0; 
+            transition: opacity 0.3s ease, visibility 0s 0.3s; 
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
-        .modal-overlay.active { visibility: visible; opacity: 1; pointer-events: auto; }
+        .modal-overlay.active { 
+            visibility: visible; opacity: 1; pointer-events: auto; 
+            transition: opacity 0.3s ease, visibility 0s 0s; 
+        }
         
-        /* Modal Responsive Formatting */
         .modal-content {
             background: #ffffff; width: 100%; max-width: 500px; margin: auto;
             border-radius: 24px; padding: 20px; box-sizing: border-box; 
@@ -175,7 +172,6 @@
         .btn-close { background: #f1f5f9; color: #64748b; border: none; font-size: 1.2rem; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; touch-action: manipulation; appearance: none; -webkit-appearance: none;}
         .btn-close:active { transform: scale(0.90); background: #e2e8f0;}
 
-        /* TAB MENU (Keypad Style) */
         .tabs-wrapper { padding-bottom: 15px; flex-shrink: 0; width: 100%; }
         .tabs-container { 
             display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; 
@@ -258,7 +254,6 @@
         </div>
     </div>
 
-    <!-- Modal Inventory -->
     <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
         <div class="modal-content">
             <div class="modal-header">
@@ -347,7 +342,11 @@
             if (targetSize === null) targetSize = 1; 
 
             renderGallery(targetSize);
-            document.getElementById('modal-overlay').classList.add('active');
+            
+            // JUMP FIX: Give browser 10ms to paint DOM before animating layout
+            setTimeout(() => {
+                document.getElementById('modal-overlay').classList.add('active');
+            }, 10);
         }
 
         function closeModal() {
