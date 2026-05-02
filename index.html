@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geometric Magic Square</title>
+    <style>
+        :root {
+            --cell-size: 110px;
+            --gap: 10px;
+            --viz-offset: -80px;
+            --viz-size: 64px;
+        }
+
+        @media (max-width: 550px) {
+            :root {
+                --cell-size: 80px;
+                --gap: 8px;
+                --viz-offset: -60px;
+                --viz-size: 50px;
+            }
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: #f4f6f8; color: #343a40; margin: 0; padding: 20px 10px; 
+            text-align: center; display: flex; flex-direction: column; align-items: center; 
+            user-select: none; -webkit-user-select: none; 
+            transition: background-color 1.5s ease; overscroll-behavior-y: contain; 
+            overflow-x: hidden;
+        }
+        body.game-won { background-color: #fffaf0; }
+        
+        h1 { font-size: 1.5rem; margin-bottom: 5px; color: #212529; }
+        p { color: #6c757d; font-size: 0.9rem; margin-bottom: 20px; max-width: 400px; line-height: 1.4; }
+
+        .controls { display: flex; justify-content: center; margin-bottom: 30px; }
+        
+        .btn-reset {
+            display: flex; align-items: center; gap: 6px; background: #fff;
+            border: 1px solid #dee2e6; color: #495057; cursor: pointer;
+            font-size: 0.9rem; font-weight: 600; padding: 8px 16px;
+            border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.2s; touch-action: manipulation;
+            appearance: none; -webkit-appearance: none; outline: none;
+        }
+        .btn-reset:active { transform: scale(0.95); background: #f8f9fa; color: #ff6b6b; border-color: #ff6b6b; }
+
+        .board-wrapper { margin: 30px auto 60px auto; display: flex; justify-content: center; position: relative; }
+        .board-anchor { position: relative; display: block; } 
+        
+        .board { 
+            display: grid; grid-template-columns: repeat(3, var(--cell-size)); 
+            grid-template-rows: repeat(3, var(--cell-size)); gap: var(--gap); 
+            background: #e9ecef; padding: 12px; border-radius: 12px; 
+            transition: box-shadow 1.5s ease, border-color 1.5s ease, background-color 1.5s ease; 
+            border: 2px solid transparent; position: relative; z-index: 10;
+        }
+        .board.board-won { border-color: #f1c40f; box-shadow: 0 0 40px rgba(241, 196, 15, 0.35); background: #fdfbf5; }
+        
+        .cell { 
+            width: var(--cell-size); height: var(--cell-size); background: white; 
+            border: 2px dashed #adb5bd; border-radius: 8px; display: flex; 
+            align-items: center; justify-content: center; transition: all 0.2s ease; 
+            position: relative; cursor: pointer; touch-action: manipulation;
+        }
+        .cell:active { transform: scale(0.96); border-color: #54a0ff; background: #f8f9fa; }
+        
+        .cell::after { content: '+'; font-size: 24px; color: #ced4da; position: absolute; z-index: 1; transition: opacity 0.2s; pointer-events: none; }
+        .cell.has-shape::after { opacity: 0; }
+
+        .cell.success-cell { background-color: #f1fbf7; border-color: #1dd1a1; box-shadow: inset 0 0 20px rgba(29, 209, 161, 0.15); border-style: solid; }
+        .cell.error-cell { background-color: #fff5f5; border-color: #ff6b6b; box-shadow: inset 0 0 20px rgba(255, 107, 107, 0.15); border-style: solid; }
+
+        .cell .shape-container { height: auto; padding: 5px; box-shadow: none; border: none; background: transparent; z-index: 2; pointer-events: none;}
+        .cell .block-grid { --bs: calc(var(--cell-size) * 0.25); }
+
+        /* FIXED: Solution Box Aspect Ratios */
+        .solution-box { 
+            position: absolute; width: var(--viz-size); height: var(--viz-size); 
+            display: flex; align-items: center; justify-content: center; background: #fff; 
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 2px solid #e9ecef; 
+            opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; 
+            pointer-events: none; z-index: 5; transform: scale(0.5); 
+        }
+        .solution-box.visible { opacity: 1; transform: scale(1); }
+        .sol-grid { display: grid; gap: 1px; width: max-content; height: max-content; }
+        .sol-cell { width: 8px; height: 8px; border-radius: 1px; background: #f8f9fa; }
+
+        #sol-row-0 { top: calc(var(--cell-size) * 0.5 - var(--viz-size)/2 + 12px); right: var(--viz-offset); }
+        #sol-row-1 { top: calc(var(--cell-size) * 1.5 + var(--gap) - var(--viz-size)/2 + 12px); right: var(--viz-offset); }
+        #sol-row-2 { top: calc(var(--cell-size) * 2.5 + var(--gap)*2 - var(--viz-size)/2 + 12px); right: var(--viz-offset); }
+        #sol-col-0 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 0.5 - var(--viz-size)/2 + 12px); }
+        #sol-col-1 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 1.5 + var(--gap) - var(--viz-size)/2 + 12px); }
+        #sol-col-2 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 2.5 + var(--gap)*2 - var(--viz-size)/2 + 12px); }
+        #sol-diag-main { bottom: var(--viz-offset); right: var(--viz-offset); }
+        #sol-diag-anti { bottom: var(--viz-offset); left: var(--viz-offset); } 
+
+        .shape-container { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 90px; background: #fff; padding: 15px; border-radius: 12px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid #f1f3f5; 
+            cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; touch-action: manipulation;
+        }
+        .shape-container:active { transform: scale(0.95); }
+        .block-grid { display: grid; gap: 2px; }
+        .block-cell { width: var(--bs, 20px); height: var(--bs, 20px); border-radius: 3px; }
+        .block-filled { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); z-index: 1000; display: flex; 
+            visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0.3s; 
+            backdrop-filter: blur(2px);
+        }
+        .modal-overlay.active { visibility: visible; opacity: 1; pointer-events: auto; }
+        
+        .modal-content {
+            background: white; width: 100%; max-width: 500px; margin: auto;
+            border-radius: 20px; padding: 20px 15px 15px 15px;
+            box-sizing: border-box; transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; 
+            max-height: 80vh; 
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                margin: 0; margin-top: auto; 
+                border-radius: 20px 20px 0 0;
+                transform: translateY(100%);
+                max-height: 85vh; padding-bottom: 30px; 
+            }
+            .modal-overlay.active .modal-content { transform: translateY(0); }
+        }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f1f3f5; flex-shrink: 0;}
+        .modal-title { font-weight: bold; font-size: 1.1rem; }
+        .modal-actions { display: flex; gap: 10px; }
+        
+        .btn-clear { background: #fff5f5; color: #ff6b6b; border: 1px solid #ffc9c9; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; touch-action: manipulation; appearance: none; -webkit-appearance: none;}
+        .btn-clear:active { background: #ffe3e3; }
+        .btn-clear:disabled { background: #f8f9fa; color: #adb5bd; border-color: #e9ecef; cursor: not-allowed; }
+        
+        .btn-close { background: transparent; border: none; font-size: 1.5rem; color: #adb5bd; cursor: pointer; line-height: 1; padding: 0 5px; touch-action: manipulation; appearance: none; -webkit-appearance: none;}
+
+        .tabs-wrapper { overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; flex-shrink: 0;}
+        .tabs-wrapper::-webkit-scrollbar { display: none; }
+        .tabs-container { display: flex; overflow-x: auto; gap: 8px; padding: 5px 5px 10px 5px; -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: center; width: max-content;}
+        .tab-btn { background: white; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); cursor: pointer; border: 1px solid #e9ecef; transition: all 0.2s ease; touch-action: manipulation; }
+        
+        .tab-btn.used { opacity: 0.4; background: #f8f9fa !important; border-color: #dee2e6 !important; color: #adb5bd !important; pointer-events: none;}
+        
+        .tab-btn.active[data-size="1"] { background: #ff6b6b; color: white; border-color: #ff6b6b; box-shadow: 0 4px 12px #ff6b6b66; } 
+        .tab-btn.active[data-size="2"] { background: #feca57; color: white; border-color: #feca57; box-shadow: 0 4px 12px #feca5766; } 
+        .tab-btn.active[data-size="3"] { background: #1dd1a1; color: white; border-color: #1dd1a1; box-shadow: 0 4px 12px #1dd1a166; } 
+        .tab-btn.active[data-size="4"] { background: #5f27cd; color: white; border-color: #5f27cd; box-shadow: 0 4px 12px #5f27cd66; } 
+        .tab-btn.active[data-size="5"] { background: #54a0ff; color: white; border-color: #54a0ff; box-shadow: 0 4px 12px #54a0ff66; } 
+        .tab-btn.active[data-size="6"] { background: #ee5253; color: white; border-color: #ee5253; box-shadow: 0 4px 12px #ee525366; } 
+        .tab-btn.active[data-size="7"] { background: #10ac84; color: white; border-color: #10ac84; box-shadow: 0 4px 12px #10ac8466; } 
+        .tab-btn.active[data-size="8"] { background: #2e86de; color: white; border-color: #2e86de; box-shadow: 0 4px 12px #2e86de66; } 
+        .tab-btn.active[data-size="9"] { background: #8395a7; color: white; border-color: #8395a7; box-shadow: 0 4px 12px #8395a766; } 
+
+        .gallery { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            gap: 15px; padding: 5px; overflow-y: auto; align-content: flex-start; 
+            flex-grow: 1; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        }
+        .gallery::-webkit-scrollbar { display: none; }
+
+        @media (hover: hover) {
+            .btn-reset:hover { background: #f8f9fa; color: #ff6b6b; border-color: #ff6b6b; }
+            .cell:hover { border-color: #54a0ff; background: #f8f9fa; }
+            .btn-clear:hover { background: #ffe3e3; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Geometric Magic Square</h1>
+    <p>Place exactly one of each number (1-9). Shapes must perfectly pack into a 3x5 area for every line.</p>
+
+    <div class="controls">
+        <button type="button" class="btn-reset" onclick="clearBoard()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            Reset Board
+        </button>
+    </div>
+
+    <div class="board-wrapper">
+        <div class="board-anchor">
+            <div id="sol-row-0" class="solution-box"></div>
+            <div id="sol-row-1" class="solution-box"></div>
+            <div id="sol-row-2" class="solution-box"></div>
+            
+            <div id="sol-col-0" class="solution-box"></div>
+            <div id="sol-col-1" class="solution-box"></div>
+            <div id="sol-col-2" class="solution-box"></div>
+            
+            <div id="sol-diag-main" class="solution-box"></div>
+            <div id="sol-diag-anti" class="solution-box"></div>
+
+            <div class="board" id="board">
+                <div class="cell" data-index="0" onclick="openModal(0)"></div>
+                <div class="cell" data-index="1" onclick="openModal(1)"></div>
+                <div class="cell" data-index="2" onclick="openModal(2)"></div>
+                <div class="cell" data-index="3" onclick="openModal(3)"></div>
+                <div class="cell" data-index="4" onclick="openModal(4)"></div>
+                <div class="cell" data-index="5" onclick="openModal(5)"></div>
+                <div class="cell" data-index="6" onclick="openModal(6)"></div>
+                <div class="cell" data-index="7" onclick="openModal(7)"></div>
+                <div class="cell" data-index="8" onclick="openModal(8)"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Inventory -->
+    <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Select Shape</div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-clear" id="btn-clear-cell" onclick="clearActiveCell()">Clear Box</button>
+                    <button type="button" class="btn-close" onclick="closeModal()">&times;</button>
+                </div>
+            </div>
+            <div class="tabs-wrapper">
+                <div class="tabs-container" id="tabs"></div>
+            </div>
+            <div class="gallery" id="gallery"></div>
+        </div>
+    </div>
+
+    <script>
+        const SHAPE_DATA = {
+            1: { color: '#ff6b6b', variants: [[0]] },
+            2: { color: '#feca57', variants: [[0,1]] },
+            3: { color: '#1dd1a1', variants: [[0,1,2], [0,1,3]] },
+            4: { color: '#5f27cd', variants: [[0,1,2,3], [0,1,2,4], [0,1,3,4], [0,1,4,5]] },
+            5: { color: '#54a0ff', variants: [[0,1,2,3,4], [0,1,2,3,5], [0,1,2,3,6], [0,1,4,5,8], [0,1,2,4,7], [0,1,4,5,7], [0,1,4,7,8], [1,3,4,5,7]] },
+            6: { color: '#ee5253', variants: [[0,1,2,3,4,5], [0,1,2,3,4,6], [0,1,2,3,5,6], [0,1,2,3,4,7], [0,1,2,4,6,7], [0,1,3,4,5,8], [0,1,3,4,5,7], [0,1,4,5,6,7]] },
+            7: { color: '#10ac84', variants: [[0,1,2,3,4,5,6], [0,1,2,3,4,5,7], [0,1,2,3,5,6,7], [0,1,2,3,4,7,8], [0,1,3,4,5,7,8], [0,1,2,3,5,6,8], [0,1,2,4,6,7,8]] },
+            8: { color: '#2e86de', variants: [[0,1,2,3,4,5,6,7], [0,1,2,3,4,5,6,8], [0,1,2,3,5,6,7,8]] },
+            9: { color: '#8395a7', variants: [[0,1,2,3,4,5,6,7,8]] }
+        };
+
+        const LINES = [
+            { id: 'sol-row-0', name: "Row 1", cells: [0, 1, 2] },
+            { id: 'sol-row-1', name: "Row 2", cells: [3, 4, 5] },
+            { id: 'sol-row-2', name: "Row 3", cells: [6, 7, 8] },
+            { id: 'sol-col-0', name: "Column 1", cells: [0, 3, 6] },
+            { id: 'sol-col-1', name: "Column 2", cells: [1, 4, 7] },
+            { id: 'sol-col-2', name: "Column 3", cells: [2, 5, 8] },
+            { id: 'sol-diag-main', name: "Main Diagonal", cells: [0, 4, 8] },
+            { id: 'sol-diag-anti', name: "Anti-Diagonal", cells: [2, 4, 6] }
+        ];
+
+        let boardState = new Array(9).fill(null);
+        let lineStates = new Array(8).fill(null);
+        let lineSolutions = new Array(8).fill(null);
+        let activeCellIndex = null;
+        
+        // GLOBAL CACHE FOR OPTIMIZATION
+        const packingCache = {}; 
+
+        function handleOverlayClick(e) {
+            if (e.target.id === 'modal-overlay') closeModal();
+        }
+
+        function openModal(cellIndex) {
+            activeCellIndex = cellIndex;
+            const currentShape = boardState[cellIndex];
+            
+            document.getElementById('btn-clear-cell').disabled = !currentShape;
+
+            const tabsContainer = document.getElementById('tabs');
+            tabsContainer.innerHTML = '';
+            
+            const usedSizes = boardState
+                .filter((s, idx) => s !== null && idx !== cellIndex)
+                .map(s => s.size);
+
+            let firstAvailableSize = null;
+
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('div');
+                const isUsedElsewhere = usedSizes.includes(i);
+                
+                btn.className = `tab-btn ${isUsedElsewhere ? 'used' : ''}`;
+                btn.dataset.size = i;
+                btn.innerText = i;
+                
+                if (!isUsedElsewhere && firstAvailableSize === null) firstAvailableSize = i;
+
+                if (!isUsedElsewhere) {
+                    btn.onclick = () => renderGallery(i);
+                }
+                tabsContainer.appendChild(btn);
+            }
+
+            let targetSize = currentShape ? currentShape.size : firstAvailableSize;
+            if (targetSize === null) targetSize = 1; 
+
+            renderGallery(targetSize);
+            document.getElementById('modal-overlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            activeCellIndex = null;
+        }
+
+        function clearActiveCell() {
+            if (activeCellIndex !== null) {
+                clearCell(activeCellIndex);
+                closeModal();
+            }
+        }
+
+        function renderGallery(size) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.toggle('active', parseInt(b.dataset.size) === size);
+            });
+            
+            setTimeout(() => {
+                try {
+                    const activeTab = document.querySelector('.tab-btn.active');
+                    if (activeTab && activeTab.parentElement) {
+                        const container = activeTab.parentElement;
+                        const scrollPos = activeTab.offsetLeft - (container.offsetWidth / 2) + (activeTab.offsetWidth / 2);
+                        container.scrollLeft = scrollPos;
+                    }
+                } catch(e) { }
+            }, 10);
+
+            const gallery = document.getElementById('gallery');
+            gallery.innerHTML = '';
+            
+            SHAPE_DATA[size].variants.forEach((indices, variantId) => {
+                const shapeDOM = createShapeDOM(size, variantId, SHAPE_DATA[size].color, indices);
+                shapeDOM.onclick = function(e) {
+                    e.stopPropagation();
+                    placeShapeOnBoard(activeCellIndex, size, variantId);
+                    closeModal();
+                };
+                gallery.appendChild(shapeDOM);
+            });
+        }
+
+        function createShapeDOM(size, variantId, color, indices) {
+            const container = document.createElement('div');
+            container.className = 'shape-container';
+            
+            let minR = 2, maxR = 0, minC = 2, maxC = 0;
+            indices.forEach(i => {
+                let r = Math.floor(i / 3); let c = i % 3;
+                if (r < minR) minR = r; if (r > maxR) maxR = r;
+                if (c < minC) minC = c; if (c > maxC) maxC = c;
+            });
+            
+            const rows = maxR - minR + 1;
+            const cols = maxC - minC + 1;
+
+            const grid = document.createElement('div');
+            grid.className = 'block-grid';
+            grid.style.gridTemplateColumns = `repeat(${cols}, var(--bs, 20px))`;
+            grid.style.gridTemplateRows = `repeat(${rows}, var(--bs, 20px))`;
+            
+            for (let r = minR; r <= maxR; r++) {
+                for (let c = minC; c <= maxC; c++) {
+                    const block = document.createElement('div');
+                    let originalIndex = r * 3 + c;
+                    
+                    if (indices.includes(originalIndex)) {
+                        block.className = 'block-cell block-filled';
+                        block.style.backgroundColor = color;
+                    } else {
+                        block.className = 'block-cell';
+                    }
+                    grid.appendChild(block);
+                }
+            }
+            container.appendChild(grid);
+            return container;
+        }
+
+        function placeShapeOnBoard(cellIndex, size, variantId) {
+            const cellEl = document.querySelector(`.cell[data-index="${cellIndex}"]`);
+            cellEl.innerHTML = '';
+            
+            const shapeDOM = createShapeDOM(size, variantId, SHAPE_DATA[size].color, SHAPE_DATA[size].variants[variantId]);
+            cellEl.appendChild(shapeDOM);
+            cellEl.classList.add('has-shape');
+            
+            boardState[cellIndex] = { size, variant: variantId };
+            evaluateBoard();
+        }
+
+        function clearCell(cellIndex) {
+            const cellEl = document.querySelector(`.cell[data-index="${cellIndex}"]`);
+            cellEl.innerHTML = '';
+            cellEl.classList.remove('has-shape');
+            boardState[cellIndex] = null;
+            evaluateBoard();
+        }
+
+        function clearBoard() {
+            boardState.fill(null);
+            lineStates.fill(null);
+            lineSolutions.fill(null);
+            
+            for (let i = 0; i < 9; i++) {
+                const cell = document.querySelector(`.cell[data-index="${i}"]`);
+                cell.innerHTML = '';
+                cell.classList.remove('success-cell', 'error-cell', 'has-shape');
+            }
+            
+            LINES.forEach(line => renderSolution(line.id, null));
+            evaluateBoard(); 
+        }
+
+        function evaluateBoard() {
+            let successfulLinesCount = 0;
+            let lineStatuses = new Array(8).fill('empty'); 
+
+            LINES.forEach((line, index) => {
+                const [a, b, c] = line.cells;
+                const s1 = boardState[a], s2 = boardState[b], s3 = boardState[c];
+                
+                if (s1 && s2 && s3) {
+                    const stateKey = `${s1.size}-${s1.variant}|${s2.size}-${s2.variant}|${s3.size}-${s3.variant}`;
+                    
+                    if (lineStates[index] !== stateKey) {
+                        lineStates[index] = stateKey; 
+                        const colors = [SHAPE_DATA[s1.size].color, SHAPE_DATA[s2.size].color, SHAPE_DATA[s3.size].color];
+                        const areaSum = s1.size + s2.size + s3.size;
+                        
+                        if (areaSum === 15) {
+                            lineSolutions[index] = attemptPacking(s1, s2, s3, colors);
+                        } else {
+                            lineSolutions[index] = null;
+                        }
+                        renderSolution(line.id, lineSolutions[index]);
+                    }
+                    
+                    if (lineSolutions[index]) {
+                        successfulLinesCount++;
+                        lineStatuses[index] = 'success';
+                    } else {
+                        lineStatuses[index] = 'error';
+                    }
+
+                } else {
+                    if (lineStates[index] !== null) {
+                        lineStates[index] = null; 
+                        lineSolutions[index] = null;
+                        renderSolution(line.id, null);
+                    }
+                }
+            });
+
+            for (let i = 0; i < 9; i++) {
+                document.querySelector(`.cell[data-index="${i}"]`).classList.remove('success-cell', 'error-cell');
+            }
+
+            LINES.forEach((line, index) => {
+                if (lineStatuses[index] === 'error') {
+                    line.cells.forEach(c => document.querySelector(`.cell[data-index="${c}"]`).classList.add('error-cell'));
+                }
+            });
+
+            LINES.forEach((line, index) => {
+                if (lineStatuses[index] === 'success') {
+                    line.cells.forEach(c => {
+                        const cellEl = document.querySelector(`.cell[data-index="${c}"]`);
+                        if (!cellEl.classList.contains('error-cell')) {
+                            cellEl.classList.add('success-cell');
+                        }
+                    });
+                }
+            });
+
+            const boardEl = document.getElementById('board');
+            if (successfulLinesCount === 8) {
+                document.body.classList.add('game-won');
+                boardEl.classList.add('board-won');
+            } else {
+                document.body.classList.remove('game-won');
+                boardEl.classList.remove('board-won');
+            }
+        }
+
+        function renderSolution(containerId, gridData) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; 
+            if (!gridData) { container.classList.remove('visible'); return; }
+            container.classList.add('visible');
+            
+            const rows = gridData.length; const cols = gridData[0].length;
+            const gridEl = document.createElement('div');
+            gridEl.className = 'sol-grid';
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 8px)`;
+            gridEl.style.gridTemplateRows = `repeat(${rows}, 8px)`;
+            
+            for(let r=0; r<rows; r++){
+                for(let c=0; c<cols; c++){
+                    const cell = document.createElement('div');
+                    cell.className = 'sol-cell';
+                    if (gridData[r][c]) cell.style.backgroundColor = gridData[r][c];
+                    gridEl.appendChild(cell);
+                }
+            }
+            container.appendChild(gridEl);
+        }
+
+        // OPTIMIZED ALGORITHM: Bounding Box Pre-calculation
+        function getAllOrientations(baseCoords) {
+            const unique = new Set(); const orientations = [];
+            [false, true].forEach(flip => {
+                let coords = baseCoords.map(([r, c]) => [r, flip ? -c : c]);
+                for (let rot = 0; rot < 4; rot++) {
+                    coords = coords.map(([r, c]) => [c, -r]);
+                    let minR = Math.min(...coords.map(pt => pt[0])); 
+                    let minC = Math.min(...coords.map(pt => pt[1]));
+                    let normalized = coords.map(([r, c]) => [r - minR, c - minC]);
+                    normalized.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+                    
+                    const hash = JSON.stringify(normalized);
+                    if (!unique.has(hash)) { 
+                        unique.add(hash); 
+                        const w = Math.max(...normalized.map(pt => pt[1])) + 1;
+                        const h = Math.max(...normalized.map(pt => pt[0])) + 1;
+                        orientations.push({ coords: normalized, w, h }); 
+                    }
+                }
+            });
+            return orientations;
+        }
+
+        function getBaseCoords(size, variantId) {
+            return SHAPE_DATA[size].variants[variantId].map(i => [Math.floor(i / 3), i % 3]);
+        }
+
+        // OPTIMIZED ALGORITHM: Largest-First Sorting & Global Memoization
+        function attemptPacking(s1, s2, s3, colors) {
+            const cacheKey = [`${s1.size}-${s1.variant}`, `${s2.size}-${s2.variant}`, `${s3.size}-${s3.variant}`].sort().join('|');
+            if (packingCache[cacheKey] !== undefined) return packingCache[cacheKey];
+
+            const shapes = [
+                { s: s1, c: colors[0] },
+                { s: s2, c: colors[1] },
+                { s: s3, c: colors[2] }
+            ].sort((a, b) => b.s.size - a.s.size);
+
+            const o1 = getAllOrientations(getBaseCoords(shapes[0].s.size, shapes[0].s.variant));
+            const o2 = getAllOrientations(getBaseCoords(shapes[1].s.size, shapes[1].s.variant));
+            const o3 = getAllOrientations(getBaseCoords(shapes[2].s.size, shapes[2].s.variant));
+            const ordColors = [shapes[0].c, shapes[1].c, shapes[2].c];
+
+            const res = runDFS(o1, o2, o3, 3, 5, ordColors) || runDFS(o1, o2, o3, 5, 3, ordColors);
+            packingCache[cacheKey] = res;
+            return res;
+        }
+
+        // OPTIMIZED ALGORITHM: Bounding Limits constraint
+        function runDFS(o1, o2, o3, rows, cols, colors) {
+            const shapesGrouped = [o1, o2, o3];
+            let solution = null;
+            function solve(grid, depth) {
+                if (depth === 3) { solution = grid.map(row => [...row]); return true; }
+                
+                for (let orient of shapesGrouped[depth]) {
+                    for (let r = 0; r <= rows - orient.h; r++) {
+                        for (let c = 0; c <= cols - orient.w; c++) {
+                            if (canPlace(grid, orient.coords, r, c)) {
+                                place(grid, orient.coords, r, c, colors[depth]); 
+                                if (solve(grid, depth + 1)) return true;
+                                place(grid, orient.coords, r, c, null);
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            const emptyGrid = Array(rows).fill(null).map(() => Array(cols).fill(null));
+            solve(emptyGrid, 0);
+            return solution;
+        }
+
+        function canPlace(grid, shapeCoords, offsetR, offsetC) {
+            for (let [r, c] of shapeCoords) {
+                if (grid[r + offsetR][c + offsetC] !== null) return false;
+            }
+            return true;
+        }
+
+        function place(grid, shapeCoords, offsetR, offsetC, val) {
+            for (let [r, c] of shapeCoords) { grid[r + offsetR][c + offsetC] = val; }
+        }
+    </script>
+</body>
+</html>
