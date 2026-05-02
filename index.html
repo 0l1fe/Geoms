@@ -26,7 +26,7 @@
             :root { --cell-size: 65px; --gap: 6px; --viz-offset: -50px; --viz-size: 38px; --shape-block-size: 16px; }
         }
 
-        /* HEIGHT-AWARE CSS FOR PC: Scales game down to fit perfectly on laptops/short screens */
+        /* HEIGHT-AWARE CSS FOR PC */
         @media (max-height: 850px) and (min-width: 601px) {
             :root { --cell-size: 90px; --gap: 10px; --viz-offset: -70px; --viz-size: 54px; --shape-block-size: 22px; }
             body { padding: 15px 10px !important; }
@@ -49,13 +49,9 @@
             padding: 30px 10px; text-align: center; display: flex; flex-direction: column; align-items: center; 
             user-select: none; -webkit-user-select: none; overscroll-behavior-y: contain; overflow-x: hidden;
             transition: background-color 1s ease; 
-            
-            /* HIDE SCROLLBARS */
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+            -ms-overflow-style: none; scrollbar-width: none; 
         }
-        body::-webkit-scrollbar { display: none; /* Chrome, Safari, Opera */ }
-
+        body::-webkit-scrollbar { display: none; }
         body.game-won { background-color: #fefce8; }
         
         h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
@@ -96,7 +92,8 @@
         .cell.has-shape::after { opacity: 0; }
         .cell.success-cell { background-color: #ecfdf5; border-color: #10b981; box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.15); border-style: solid; }
         .cell.error-cell { background-color: #fef2f2; border-color: #ef4444; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); border-style: solid; }
-        .cell .shape-container { height: auto; padding: 0; box-shadow: none; border: none; background: transparent; pointer-events: none; transform: scale(1.1);}
+        
+        .cell .shape-container { height: 100%; width: 100%; aspect-ratio: auto; padding: 0; box-shadow: none; border: none; background: transparent; pointer-events: none; transform: scale(1.1);}
 
         /* SOLUTION VISUALIZERS */
         .solution-box { 
@@ -117,11 +114,12 @@
         #sol-diag-main { bottom: var(--viz-offset); right: var(--viz-offset); }
         #sol-diag-anti { bottom: var(--viz-offset); left: var(--viz-offset); } 
 
-        /* NATIVE POLYOMINO RENDERER */
+        /* NATIVE POLYOMINO RENDERER (CLIPPING FIX) */
         .shape-container { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90px; background: #fff; 
-            padding: 15px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 2px solid #f1f5f9; 
-            cursor: pointer; transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s; touch-action: manipulation;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            width: 100%; height: auto; aspect-ratio: 1; /* Automatically creates a perfect responsive square */
+            background: #fff; padding: 10px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); 
+            border: 2px solid #f1f5f9; cursor: pointer; transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s; touch-action: manipulation;
         }
         .shape-container:active { transform: scale(0.92); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-color: #e2e8f0; }
         .block-grid { display: grid; gap: 0; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -137,9 +135,12 @@
         .modal-overlay.active { visibility: visible; opacity: 1; pointer-events: auto; transition: opacity 0.3s ease, visibility 0s 0s; }
         
         .modal-content {
+            /* Context-Aware Shrink for Inventory Shapes */
+            --shape-block-size: 20px; 
             background: #fff; width: 100%; max-width: 500px; margin: auto; border-radius: 24px; padding: 20px; 
             transform: scale(0.95); opacity: 0; transition: transform 0.3s cubic-bezier(0.2, 0.85, 0.3, 1), opacity 0.3s ease;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 80vh; 
+            overflow: hidden; /* Prevent visual bleed */
         }
         .modal-overlay.active .modal-content { transform: scale(1); opacity: 1; }
 
@@ -179,7 +180,12 @@
         .tab-btn.active[data-size="8"] { background: #2e86de; color: white; border-color: #2e86de; box-shadow: 0 4px 15px rgba(46, 134, 222, 0.3); } 
         .tab-btn.active[data-size="9"] { background: #8395a7; color: white; border-color: #8395a7; box-shadow: 0 4px 15px rgba(131, 149, 167, 0.3); } 
 
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 15px; padding: 5px; overflow-y: auto; align-content: flex-start; flex-grow: 1; scrollbar-width: none; }
+        /* FLEXBOX OVERFLOW FIX */
+        .gallery { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            gap: 15px; padding: 5px 5px 20px 5px; overflow-y: auto; align-content: flex-start; 
+            flex-grow: 1; min-height: 0; scrollbar-width: none; 
+        }
         .gallery::-webkit-scrollbar { display: none; }
 
         @media (hover: hover) {
