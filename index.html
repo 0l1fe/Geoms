@@ -49,9 +49,21 @@
             padding: 30px 10px; text-align: center; display: flex; flex-direction: column; align-items: center; 
             user-select: none; -webkit-user-select: none; overscroll-behavior-y: contain; overflow-x: hidden;
             transition: background-color 1s ease; 
-            -ms-overflow-style: none; scrollbar-width: none; 
         }
-        body::-webkit-scrollbar { display: none; }
+        
+        /* HIDE SCROLLBARS GLOBALLY (PC & MOBILE) */
+        html, body, * { 
+            -ms-overflow-style: none !important;  /* IE and Edge */
+            scrollbar-width: none !important;  /* Firefox */
+        }
+        ::-webkit-scrollbar { 
+            display: none !important; 
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+            color: transparent !important;
+        }
+
         body.game-won { background-color: #fefce8; }
         
         h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
@@ -93,7 +105,12 @@
         .cell.success-cell { background-color: #ecfdf5; border-color: #10b981; box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.15); border-style: solid; }
         .cell.error-cell { background-color: #fef2f2; border-color: #ef4444; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); border-style: solid; }
         
-        .cell .shape-container { height: 100%; width: 100%; aspect-ratio: auto; padding: 0; box-shadow: none; border: none; background: transparent; pointer-events: none; transform: scale(1.1);}
+        /* Shape formatting specifically when inside a board cell */
+        .cell .shape-container { 
+            height: 100%; min-height: 100%; width: 100%; padding: 0; 
+            box-shadow: none; border: none; background: transparent; 
+            pointer-events: none; transform: scale(1); 
+        }
 
         /* SOLUTION VISUALIZERS */
         .solution-box { 
@@ -117,7 +134,7 @@
         /* NATIVE POLYOMINO RENDERER (CLIPPING FIX) */
         .shape-container { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            width: 100%; height: auto; aspect-ratio: 1; /* Automatically creates a perfect responsive square */
+            width: 100%; height: auto; aspect-ratio: 1; 
             background: #fff; padding: 10px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); 
             border: 2px solid #f1f5f9; cursor: pointer; transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s; touch-action: manipulation;
         }
@@ -140,16 +157,20 @@
             background: #fff; width: 100%; max-width: 500px; margin: auto; border-radius: 24px; padding: 20px; 
             transform: scale(0.95); opacity: 0; transition: transform 0.3s cubic-bezier(0.2, 0.85, 0.3, 1), opacity 0.3s ease;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 80vh; 
-            overflow: hidden; /* Prevent visual bleed */
+            overflow: hidden;
         }
         .modal-overlay.active .modal-content { transform: scale(1); opacity: 1; }
 
         @media (max-width: 600px) {
             .modal-content {
+                --shape-block-size: 18px; 
                 margin: 0; margin-top: auto; border-radius: 28px 28px 0 0; transform: translateY(100%); opacity: 1;
                 padding-bottom: 35px; max-height: 85vh; transition: transform 0.35s cubic-bezier(0.2, 0.85, 0.3, 1);
             }
             .modal-overlay.active .modal-content { transform: translateY(0); }
+        }
+        @media (max-width: 400px) {
+            .modal-content { --shape-block-size: 14px; }
         }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; flex-shrink: 0;}
@@ -184,9 +205,8 @@
         .gallery { 
             display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
             gap: 15px; padding: 5px 5px 20px 5px; overflow-y: auto; align-content: flex-start; 
-            flex-grow: 1; min-height: 0; scrollbar-width: none; 
+            flex-grow: 1; min-height: 0; 
         }
-        .gallery::-webkit-scrollbar { display: none; }
 
         @media (hover: hover) {
             .btn-reset:hover { background: #f8fafc; color: #ef4444; border-color: #ef4444; }
