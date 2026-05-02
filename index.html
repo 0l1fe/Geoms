@@ -5,107 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Geometric Magic Square</title>
     <style>
-        :root {
-            /* Desktop Sizes */
-            --cell-size: 110px;
-            --gap: 12px;
-            --viz-offset: -85px;
-            --viz-size: 64px;
-            --shape-block-size: 26px;
-        }
-
-        /* Tablet / Large Phones */
-        @media (max-width: 600px) {
-            :root {
-                --cell-size: 80px;
-                --gap: 8px;
-                --viz-offset: -60px;
-                --viz-size: 46px;
-                --shape-block-size: 20px;
-            }
-        }
-
-        /* Small Phones (iPhone SE, older Androids) */
-        @media (max-width: 400px) {
-            :root {
-                --cell-size: 65px;
-                --gap: 6px;
-                --viz-offset: -50px;
-                --viz-size: 38px;
-                --shape-block-size: 16px;
-            }
-        }
-
-        body { 
-            font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f4f8; 
-            color: #1e293b; 
-            margin: 0; 
-            padding: 30px 10px; 
-            text-align: center; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            user-select: none; 
-            -webkit-user-select: none; 
-            transition: background-color 1s ease; 
-            overscroll-behavior-y: contain; 
-            overflow-x: hidden;
-        }
+        /* GLOBAL RESET & VARIABLES */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         
+        :root {
+            --cell-size: 110px; --gap: 12px;
+            --viz-offset: -85px; --viz-size: 64px;
+            --shape-block-size: 26px;
+            --bg-color: #f0f4f8; --text-primary: #0f172a; --text-secondary: #64748b;
+        }
+
+        @media (max-width: 600px) {
+            :root { --cell-size: 80px; --gap: 8px; --viz-offset: -60px; --viz-size: 46px; --shape-block-size: 20px; }
+        }
+
+        @media (max-width: 400px) {
+            :root { --cell-size: 65px; --gap: 6px; --viz-offset: -50px; --viz-size: 38px; --shape-block-size: 16px; }
+        }
+
+        /* BASE STYLES */
+        body { 
+            font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color); color: var(--text-primary); 
+            padding: 30px 10px; text-align: center; display: flex; flex-direction: column; align-items: center; 
+            user-select: none; -webkit-user-select: none; overscroll-behavior-y: contain; overflow-x: hidden;
+            transition: background-color 1s ease; 
+        }
         body.game-won { background-color: #fefce8; }
         
-        h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; color: #0f172a; }
-        p { color: #64748b; font-size: 0.95rem; margin-bottom: 25px; max-width: 400px; line-height: 1.5; font-weight: 500;}
+        h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
+        p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 25px; max-width: 400px; line-height: 1.5; font-weight: 500;}
 
+        /* TOP CONTROLS */
         .controls { display: flex; justify-content: center; margin-bottom: 30px; }
-        
         .btn-reset {
-            display: flex; align-items: center; gap: 6px; background: #ffffff;
+            display: flex; align-items: center; gap: 6px; background: #fff;
             border: 2px solid #e2e8f0; color: #475569; cursor: pointer;
             font-size: 0.95rem; font-weight: 700; padding: 10px 20px;
             border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); touch-action: manipulation;
-            appearance: none; -webkit-appearance: none; outline: none; font-family: inherit;
+            appearance: none; outline: none; font-family: inherit;
         }
         .btn-reset:active { transform: scale(0.95); background: #f8fafc; color: #ef4444; border-color: #ef4444; box-shadow: none;}
 
+        /* BOARD LAYOUT */
         .board-wrapper { margin: 30px auto 60px auto; display: flex; justify-content: center; position: relative; }
         .board-anchor { position: relative; display: block; } 
         
         .board { 
-            display: grid; grid-template-columns: repeat(3, var(--cell-size)); 
-            grid-template-rows: repeat(3, var(--cell-size)); gap: var(--gap); 
-            background: #ffffff; padding: 14px; border-radius: 20px; 
+            display: grid; grid-template-columns: repeat(3, var(--cell-size)); grid-template-rows: repeat(3, var(--cell-size)); 
+            gap: var(--gap); background: #fff; padding: 14px; border-radius: 20px; 
             transition: box-shadow 1s ease, border-color 1s ease, background-color 1s ease; 
-            border: 2px solid #e2e8f0; position: relative; z-index: 10;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            border: 2px solid #e2e8f0; position: relative; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.04);
         }
         .board.board-won { border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.4); background: #fffdf2; }
         
+        /* BOARD CELLS */
         .cell { 
-            width: var(--cell-size); height: var(--cell-size); background: #f8fafc; 
-            border: 2px solid #e2e8f0; border-radius: 16px; display: flex; 
-            box-shadow: inset 0 3px 8px rgba(0,0,0,0.03);
-            align-items: center; justify-content: center; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            position: relative; cursor: pointer; touch-action: manipulation;
+            background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; display: flex; 
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.03); align-items: center; justify-content: center; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; cursor: pointer; touch-action: manipulation;
         }
         .cell:active { transform: scale(0.96); border-color: #3b82f6; background: #eff6ff; box-shadow: inset 0 3px 8px rgba(59, 130, 246, 0.1);}
-        
         .cell::after { content: '+'; font-size: 28px; font-weight: 300; color: #cbd5e1; position: absolute; z-index: 1; transition: opacity 0.2s; pointer-events: none; }
         .cell.has-shape::after { opacity: 0; }
-
         .cell.success-cell { background-color: #ecfdf5; border-color: #10b981; box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.15); border-style: solid; }
         .cell.error-cell { background-color: #fef2f2; border-color: #ef4444; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); border-style: solid; }
+        .cell .shape-container { height: auto; padding: 0; box-shadow: none; border: none; background: transparent; pointer-events: none; transform: scale(1.1);}
 
-        .cell .shape-container { height: auto; padding: 0; box-shadow: none; border: none; background: transparent; z-index: 2; pointer-events: none; transform: scale(1.1);}
-
+        /* SOLUTION VISUALIZERS */
         .solution-box { 
-            position: absolute; width: var(--viz-size); height: var(--viz-size); 
-            display: flex; align-items: center; justify-content: center; background: #ffffff; 
-            border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 2px solid #e2e8f0; 
-            opacity: 0; transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
-            pointer-events: none; z-index: 5; transform: scale(0.5); padding: 4px; box-sizing: border-box;
+            position: absolute; width: var(--viz-size); height: var(--viz-size); display: flex; align-items: center; justify-content: center; 
+            background: #fff; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 2px solid #e2e8f0; 
+            opacity: 0; transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; z-index: 5; transform: scale(0.5); padding: 4px;
         }
         .solution-box.visible { opacity: 1; transform: scale(1); }
         .sol-grid { display: grid; gap: 0; width: 100%; height: 100%; border-radius: 4px; overflow: hidden; }
@@ -120,75 +92,58 @@
         #sol-diag-main { bottom: var(--viz-offset); right: var(--viz-offset); }
         #sol-diag-anti { bottom: var(--viz-offset); left: var(--viz-offset); } 
 
+        /* NATIVE POLYOMINO RENDERER */
         .shape-container { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 90px; background: #ffffff; padding: 15px; border-radius: 16px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 2px solid #f1f5f9; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 90px; background: #fff; 
+            padding: 15px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 2px solid #f1f5f9; 
             cursor: pointer; transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s; touch-action: manipulation;
         }
         .shape-container:active { transform: scale(0.92); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-color: #e2e8f0; }
-        
         .block-grid { display: grid; gap: 0; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
         .block-cell { width: var(--shape-block-size); height: var(--shape-block-size); }
         .block-filled { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15); }
 
-        /* JUMP FIX: Transition timing updated for perfect modal animations */
+        /* MODAL OVERLAY */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.4); z-index: 1000; display: flex; 
-            visibility: hidden; opacity: 0; 
-            transition: opacity 0.3s ease, visibility 0s 0.3s; 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); z-index: 1000; display: flex; 
+            visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0s 0.3s; 
             backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
-        .modal-overlay.active { 
-            visibility: visible; opacity: 1; pointer-events: auto; 
-            transition: opacity 0.3s ease, visibility 0s 0s; 
-        }
+        .modal-overlay.active { visibility: visible; opacity: 1; pointer-events: auto; transition: opacity 0.3s ease, visibility 0s 0s; }
         
         .modal-content {
-            background: #ffffff; width: 100%; max-width: 500px; margin: auto;
-            border-radius: 24px; padding: 20px; box-sizing: border-box; 
-            transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            background: #fff; width: 100%; max-width: 500px; margin: auto; border-radius: 24px; padding: 20px; 
+            transform: scale(0.95); opacity: 0; transition: transform 0.3s cubic-bezier(0.2, 0.85, 0.3, 1), opacity 0.3s ease;
             box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 80vh; 
         }
-        .modal-overlay.active .modal-content { transform: scale(1); }
+        .modal-overlay.active .modal-content { transform: scale(1); opacity: 1; }
 
         @media (max-width: 600px) {
             .modal-content {
-                margin: 0; margin-top: auto; border-radius: 28px 28px 0 0;
-                transform: translateY(100%); max-height: 85vh; padding-bottom: 35px; 
+                margin: 0; margin-top: auto; border-radius: 28px 28px 0 0; transform: translateY(100%); opacity: 1;
+                padding-bottom: 35px; max-height: 85vh; transition: transform 0.35s cubic-bezier(0.2, 0.85, 0.3, 1);
             }
             .modal-overlay.active .modal-content { transform: translateY(0); }
         }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; flex-shrink: 0;}
-        .modal-title { font-weight: 800; font-size: 1.2rem; color: #0f172a;}
+        .modal-title { font-weight: 800; font-size: 1.2rem; }
         .modal-actions { display: flex; gap: 10px; }
-        
-        .btn-clear { background: #fef2f2; color: #ef4444; border: 2px solid #fecaca; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; touch-action: manipulation; appearance: none; -webkit-appearance: none; font-family: inherit;}
+        .btn-clear { background: #fef2f2; color: #ef4444; border: 2px solid #fecaca; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; appearance: none; font-family: inherit;}
         .btn-clear:active { transform: scale(0.95); background: #fee2e2; }
         .btn-clear:disabled { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; transform: none;}
-        
-        .btn-close { background: #f1f5f9; color: #64748b; border: none; font-size: 1.2rem; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; touch-action: manipulation; appearance: none; -webkit-appearance: none;}
+        .btn-close { background: #f1f5f9; color: var(--text-secondary); border: none; font-size: 1.2rem; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; appearance: none; }
         .btn-close:active { transform: scale(0.90); background: #e2e8f0;}
 
+        /* TAB KEYPAD */
         .tabs-wrapper { padding-bottom: 15px; flex-shrink: 0; width: 100%; }
-        .tabs-container { 
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; 
-            width: 100%; box-sizing: border-box; padding: 0 5px;
-        }
+        .tabs-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; padding: 0 5px; }
         .tab-btn { 
-            background: #ffffff; width: 44px; height: 44px; 
-            display: flex; align-items: center; justify-content: center; 
-            border-radius: 14px; font-weight: 800; font-size: 16px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; 
-            border: 2px solid #f1f5f9; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
-            touch-action: manipulation; color: #475569; font-family: inherit; 
-            margin: 0; padding: 0; box-sizing: border-box;
+            background: #fff; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 14px; font-weight: 800; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; 
+            border: 2px solid #f1f5f9; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); color: #475569; font-family: inherit; 
         }
-        
         .tab-btn.used { opacity: 0.3; background: #f8fafc !important; border-color: #e2e8f0 !important; color: #94a3b8 !important; pointer-events: none;}
-        
         .tab-btn.active[data-size="1"] { background: #ff6b6b; color: white; border-color: #ff6b6b; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); } 
         .tab-btn.active[data-size="2"] { background: #feca57; color: white; border-color: #feca57; box-shadow: 0 4px 15px rgba(254, 202, 87, 0.3); } 
         .tab-btn.active[data-size="3"] { background: #1dd1a1; color: white; border-color: #1dd1a1; box-shadow: 0 4px 15px rgba(29, 209, 161, 0.3); } 
@@ -199,11 +154,7 @@
         .tab-btn.active[data-size="8"] { background: #2e86de; color: white; border-color: #2e86de; box-shadow: 0 4px 15px rgba(46, 134, 222, 0.3); } 
         .tab-btn.active[data-size="9"] { background: #8395a7; color: white; border-color: #8395a7; box-shadow: 0 4px 15px rgba(131, 149, 167, 0.3); } 
 
-        .gallery { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); 
-            gap: 15px; padding: 5px; overflow-y: auto; align-content: flex-start; 
-            flex-grow: 1; scrollbar-width: none; -webkit-overflow-scrolling: touch;
-        }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 15px; padding: 5px; overflow-y: auto; align-content: flex-start; flex-grow: 1; scrollbar-width: none; }
         .gallery::-webkit-scrollbar { display: none; }
 
         @media (hover: hover) {
@@ -221,7 +172,7 @@
     <p>Place exactly one of each number (1-9). Shapes must perfectly pack into a 3x5 area for every line.</p>
 
     <div class="controls">
-        <button type="button" class="btn-reset" onclick="clearBoard()">
+        <button type="button" class="btn-reset" id="btn-reset">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
             Reset Board
         </button>
@@ -232,47 +183,39 @@
             <div id="sol-row-0" class="solution-box"></div>
             <div id="sol-row-1" class="solution-box"></div>
             <div id="sol-row-2" class="solution-box"></div>
-            
             <div id="sol-col-0" class="solution-box"></div>
             <div id="sol-col-1" class="solution-box"></div>
             <div id="sol-col-2" class="solution-box"></div>
-            
             <div id="sol-diag-main" class="solution-box"></div>
             <div id="sol-diag-anti" class="solution-box"></div>
 
             <div class="board" id="board">
-                <div class="cell" data-index="0" onclick="openModal(0)"></div>
-                <div class="cell" data-index="1" onclick="openModal(1)"></div>
-                <div class="cell" data-index="2" onclick="openModal(2)"></div>
-                <div class="cell" data-index="3" onclick="openModal(3)"></div>
-                <div class="cell" data-index="4" onclick="openModal(4)"></div>
-                <div class="cell" data-index="5" onclick="openModal(5)"></div>
-                <div class="cell" data-index="6" onclick="openModal(6)"></div>
-                <div class="cell" data-index="7" onclick="openModal(7)"></div>
-                <div class="cell" data-index="8" onclick="openModal(8)"></div>
+                <div class="cell" data-index="0"></div><div class="cell" data-index="1"></div><div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div><div class="cell" data-index="4"></div><div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div><div class="cell" data-index="7"></div><div class="cell" data-index="8"></div>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+    <!-- Modal Inventory -->
+    <div class="modal-overlay" id="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="modal-title">Select Shape</div>
                 <div class="modal-actions">
-                    <button type="button" class="btn-clear" id="btn-clear-cell" onclick="clearActiveCell()">Clear Box</button>
-                    <button type="button" class="btn-close" onclick="closeModal()">
+                    <button type="button" class="btn-clear" id="btn-clear-cell">Clear Box</button>
+                    <button type="button" class="btn-close" id="btn-close-modal">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
             </div>
-            <div class="tabs-wrapper">
-                <div class="tabs-container" id="tabs"></div>
-            </div>
+            <div class="tabs-wrapper"><div class="tabs-container" id="tabs"></div></div>
             <div class="gallery" id="gallery"></div>
         </div>
     </div>
 
     <script>
+        // --- CONSTANTS & CACHE ---
         const SHAPE_DATA = {
             1: { color: '#ff6b6b', variants: [[0]] },
             2: { color: '#feca57', variants: [[0,1]] },
@@ -286,67 +229,84 @@
         };
 
         const LINES = [
-            { id: 'sol-row-0', name: "Row 1", cells: [0, 1, 2] },
-            { id: 'sol-row-1', name: "Row 2", cells: [3, 4, 5] },
-            { id: 'sol-row-2', name: "Row 3", cells: [6, 7, 8] },
-            { id: 'sol-col-0', name: "Column 1", cells: [0, 3, 6] },
-            { id: 'sol-col-1', name: "Column 2", cells: [1, 4, 7] },
-            { id: 'sol-col-2', name: "Column 3", cells: [2, 5, 8] },
-            { id: 'sol-diag-main', name: "Main Diagonal", cells: [0, 4, 8] },
-            { id: 'sol-diag-anti', name: "Anti-Diagonal", cells: [2, 4, 6] }
+            { id: 'sol-row-0', cells: [0, 1, 2] }, { id: 'sol-row-1', cells: [3, 4, 5] }, { id: 'sol-row-2', cells: [6, 7, 8] },
+            { id: 'sol-col-0', cells: [0, 3, 6] }, { id: 'sol-col-1', cells: [1, 4, 7] }, { id: 'sol-col-2', cells: [2, 5, 8] },
+            { id: 'sol-diag-main', cells: [0, 4, 8] }, { id: 'sol-diag-anti', cells: [2, 4, 6] }
         ];
 
+        // GLOBAL OPTIMIZATION: Pre-calculate all geometric rotations and bounding boxes instantly on load
+        const STATIC_GEOMETRY_CACHE = {};
+        const PACKING_CACHE = {}; 
+        
         let boardState = new Array(9).fill(null);
         let lineStates = new Array(8).fill(null);
         let lineSolutions = new Array(8).fill(null);
         let activeCellIndex = null;
-        
-        const packingCache = {}; 
 
-        function handleOverlayClick(e) {
-            if (e.target.id === 'modal-overlay') closeModal();
+        // --- INITIALIZATION ---
+        function init() {
+            precalculateGeometry();
+            bindEvents();
         }
 
+        function bindEvents() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.addEventListener('click', () => openModal(parseInt(cell.dataset.index)));
+            });
+            document.getElementById('modal-overlay').addEventListener('click', (e) => {
+                if (e.target.id === 'modal-overlay') closeModal();
+            });
+            document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+            document.getElementById('btn-clear-cell').addEventListener('click', clearActiveCell);
+            document.getElementById('btn-reset').addEventListener('click', clearBoard);
+        }
+
+        function precalculateGeometry() {
+            for (const size in SHAPE_DATA) {
+                SHAPE_DATA[size].variants.forEach((indices, variantId) => {
+                    const baseCoords = indices.map(i => [Math.floor(i / 3), i % 3]);
+                    const unique = new Set(); const orientations = [];
+                    [false, true].forEach(flip => {
+                        let coords = baseCoords.map(([r, c]) => [r, flip ? -c : c]);
+                        for (let rot = 0; rot < 4; rot++) {
+                            coords = coords.map(([r, c]) => [c, -r]);
+                            let minR = Math.min(...coords.map(pt => pt[0])); let minC = Math.min(...coords.map(pt => pt[1]));
+                            let norm = coords.map(([r, c]) => [r - minR, c - minC]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+                            const hash = JSON.stringify(norm);
+                            if (!unique.has(hash)) { 
+                                unique.add(hash); 
+                                orientations.push({ coords: norm, w: Math.max(...norm.map(pt => pt[1])) + 1, h: Math.max(...norm.map(pt => pt[0])) + 1 }); 
+                            }
+                        }
+                    });
+                    STATIC_GEOMETRY_CACHE[`${size}-${variantId}`] = orientations;
+                });
+            }
+        }
+
+        // --- UI LOGIC ---
         function openModal(cellIndex) {
             activeCellIndex = cellIndex;
             const currentShape = boardState[cellIndex];
-            
             document.getElementById('btn-clear-cell').disabled = !currentShape;
 
             const tabsContainer = document.getElementById('tabs');
             tabsContainer.innerHTML = '';
-            
-            const usedSizes = boardState
-                .filter((s, idx) => s !== null && idx !== cellIndex)
-                .map(s => s.size);
-
+            const usedSizes = boardState.filter((s, idx) => s !== null && idx !== cellIndex).map(s => s.size);
             let firstAvailableSize = null;
 
             for (let i = 1; i <= 9; i++) {
                 const btn = document.createElement('div');
                 const isUsedElsewhere = usedSizes.includes(i);
-                
                 btn.className = `tab-btn ${isUsedElsewhere ? 'used' : ''}`;
-                btn.dataset.size = i;
-                btn.innerText = i;
-                
+                btn.dataset.size = i; btn.innerText = i;
                 if (!isUsedElsewhere && firstAvailableSize === null) firstAvailableSize = i;
-
-                if (!isUsedElsewhere) {
-                    btn.onclick = () => renderGallery(i);
-                }
+                if (!isUsedElsewhere) btn.addEventListener('click', () => renderGallery(i));
                 tabsContainer.appendChild(btn);
             }
 
-            let targetSize = currentShape ? currentShape.size : firstAvailableSize;
-            if (targetSize === null) targetSize = 1; 
-
-            renderGallery(targetSize);
-            
-            // JUMP FIX: Give browser 10ms to paint DOM before animating layout
-            setTimeout(() => {
-                document.getElementById('modal-overlay').classList.add('active');
-            }, 10);
+            renderGallery(currentShape ? currentShape.size : (firstAvailableSize || 1));
+            setTimeout(() => document.getElementById('modal-overlay').classList.add('active'), 10);
         }
 
         function closeModal() {
@@ -355,190 +315,107 @@
         }
 
         function clearActiveCell() {
-            if (activeCellIndex !== null) {
-                clearCell(activeCellIndex);
-                closeModal();
-            }
+            if (activeCellIndex === null) return;
+            const cellEl = document.querySelector(`.cell[data-index="${activeCellIndex}"]`);
+            cellEl.innerHTML = ''; cellEl.classList.remove('has-shape');
+            boardState[activeCellIndex] = null;
+            closeModal(); setTimeout(evaluateBoard, 10);
         }
 
         function renderGallery(size) {
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.toggle('active', parseInt(b.dataset.size) === size);
-            });
-
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.size) === size));
             const gallery = document.getElementById('gallery');
             gallery.innerHTML = '';
             
             SHAPE_DATA[size].variants.forEach((indices, variantId) => {
                 const shapeDOM = createShapeDOM(size, variantId, SHAPE_DATA[size].color, indices);
-                shapeDOM.onclick = function(e) {
+                shapeDOM.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    placeShapeOnBoard(activeCellIndex, size, variantId);
-                    closeModal();
-                };
+                    const cellEl = document.querySelector(`.cell[data-index="${activeCellIndex}"]`);
+                    cellEl.innerHTML = ''; cellEl.appendChild(createShapeDOM(size, variantId, SHAPE_DATA[size].color, indices));
+                    cellEl.classList.add('has-shape');
+                    boardState[activeCellIndex] = { size, variant: variantId };
+                    closeModal(); setTimeout(evaluateBoard, 10);
+                });
                 gallery.appendChild(shapeDOM);
             });
         }
 
         function createShapeDOM(size, variantId, color, indices) {
-            const container = document.createElement('div');
-            container.className = 'shape-container';
-            
+            const container = document.createElement('div'); container.className = 'shape-container';
             let minR = 2, maxR = 0, minC = 2, maxC = 0;
             indices.forEach(i => {
-                let r = Math.floor(i / 3); let c = i % 3;
+                let r = Math.floor(i / 3), c = i % 3;
                 if (r < minR) minR = r; if (r > maxR) maxR = r;
                 if (c < minC) minC = c; if (c > maxC) maxC = c;
             });
-            
-            const rows = maxR - minR + 1;
-            const cols = maxC - minC + 1;
-
-            const grid = document.createElement('div');
-            grid.className = 'block-grid';
-            grid.style.gridTemplateColumns = `repeat(${cols}, var(--shape-block-size))`;
-            grid.style.gridTemplateRows = `repeat(${rows}, var(--shape-block-size))`;
+            const grid = document.createElement('div'); grid.className = 'block-grid';
+            grid.style.gridTemplateColumns = `repeat(${maxC - minC + 1}, var(--shape-block-size))`;
+            grid.style.gridTemplateRows = `repeat(${maxR - minR + 1}, var(--shape-block-size))`;
             
             for (let r = minR; r <= maxR; r++) {
                 for (let c = minC; c <= maxC; c++) {
                     const block = document.createElement('div');
-                    let originalIndex = r * 3 + c;
-                    
-                    if (indices.includes(originalIndex)) {
-                        block.className = 'block-cell block-filled';
-                        block.style.backgroundColor = color;
-                    } else {
-                        block.className = 'block-cell';
-                    }
+                    if (indices.includes(r * 3 + c)) {
+                        block.className = 'block-cell block-filled'; block.style.backgroundColor = color;
+                    } else { block.className = 'block-cell'; }
                     grid.appendChild(block);
                 }
             }
-            container.appendChild(grid);
-            return container;
-        }
-
-        function placeShapeOnBoard(cellIndex, size, variantId) {
-            const cellEl = document.querySelector(`.cell[data-index="${cellIndex}"]`);
-            cellEl.innerHTML = '';
-            
-            const shapeDOM = createShapeDOM(size, variantId, SHAPE_DATA[size].color, SHAPE_DATA[size].variants[variantId]);
-            cellEl.appendChild(shapeDOM);
-            cellEl.classList.add('has-shape');
-            boardState[cellIndex] = { size, variant: variantId };
-            
-            setTimeout(evaluateBoard, 10);
-        }
-
-        function clearCell(cellIndex) {
-            const cellEl = document.querySelector(`.cell[data-index="${cellIndex}"]`);
-            cellEl.innerHTML = '';
-            cellEl.classList.remove('has-shape');
-            boardState[cellIndex] = null;
-            setTimeout(evaluateBoard, 10);
+            container.appendChild(grid); return container;
         }
 
         function clearBoard() {
-            boardState.fill(null);
-            lineStates.fill(null);
-            lineSolutions.fill(null);
-            
+            boardState.fill(null); lineStates.fill(null); lineSolutions.fill(null);
             for (let i = 0; i < 9; i++) {
                 const cell = document.querySelector(`.cell[data-index="${i}"]`);
-                cell.innerHTML = '';
-                cell.classList.remove('success-cell', 'error-cell', 'has-shape');
+                cell.innerHTML = ''; cell.classList.remove('success-cell', 'error-cell', 'has-shape');
             }
-            
             LINES.forEach(line => renderSolution(line.id, null));
             setTimeout(evaluateBoard, 10);
         }
 
+        // --- GAME LOGIC ---
         function evaluateBoard() {
-            let successfulLinesCount = 0;
-            let lineStatuses = new Array(8).fill('empty'); 
+            let successfulLinesCount = 0; let lineStatuses = new Array(8).fill('empty'); 
 
             LINES.forEach((line, index) => {
-                const [a, b, c] = line.cells;
-                const s1 = boardState[a], s2 = boardState[b], s3 = boardState[c];
+                const [a, b, c] = line.cells; const s1 = boardState[a], s2 = boardState[b], s3 = boardState[c];
                 
                 if (s1 && s2 && s3) {
                     const stateKey = `${s1.size}-${s1.variant}|${s2.size}-${s2.variant}|${s3.size}-${s3.variant}`;
-                    
                     if (lineStates[index] !== stateKey) {
                         lineStates[index] = stateKey; 
-                        const colors = [SHAPE_DATA[s1.size].color, SHAPE_DATA[s2.size].color, SHAPE_DATA[s3.size].color];
-                        const areaSum = s1.size + s2.size + s3.size;
-                        
-                        if (areaSum === 15) {
-                            lineSolutions[index] = attemptPacking(s1, s2, s3, colors);
-                        } else {
-                            lineSolutions[index] = null;
-                        }
+                        lineSolutions[index] = (s1.size + s2.size + s3.size === 15) ? attemptPacking(s1, s2, s3) : null;
                         renderSolution(line.id, lineSolutions[index]);
                     }
-                    
-                    if (lineSolutions[index]) {
-                        successfulLinesCount++;
-                        lineStatuses[index] = 'success';
-                    } else {
-                        lineStatuses[index] = 'error';
-                    }
-
-                } else {
-                    if (lineStates[index] !== null) {
-                        lineStates[index] = null; 
-                        lineSolutions[index] = null;
-                        renderSolution(line.id, null);
-                    }
+                    if (lineSolutions[index]) { successfulLinesCount++; lineStatuses[index] = 'success'; } 
+                    else { lineStatuses[index] = 'error'; }
+                } else if (lineStates[index] !== null) {
+                    lineStates[index] = null; lineSolutions[index] = null; renderSolution(line.id, null);
                 }
             });
 
-            for (let i = 0; i < 9; i++) {
-                document.querySelector(`.cell[data-index="${i}"]`).classList.remove('success-cell', 'error-cell');
-            }
-
-            LINES.forEach((line, index) => {
-                if (lineStatuses[index] === 'error') {
-                    line.cells.forEach(c => document.querySelector(`.cell[data-index="${c}"]`).classList.add('error-cell'));
-                }
-            });
-
-            LINES.forEach((line, index) => {
-                if (lineStatuses[index] === 'success') {
-                    line.cells.forEach(c => {
-                        const cellEl = document.querySelector(`.cell[data-index="${c}"]`);
-                        if (!cellEl.classList.contains('error-cell')) {
-                            cellEl.classList.add('success-cell');
-                        }
-                    });
-                }
-            });
+            for (let i = 0; i < 9; i++) document.querySelector(`.cell[data-index="${i}"]`).classList.remove('success-cell', 'error-cell');
+            LINES.forEach((line, index) => { if (lineStatuses[index] === 'error') line.cells.forEach(c => document.querySelector(`.cell[data-index="${c}"]`).classList.add('error-cell')); });
+            LINES.forEach((line, index) => { if (lineStatuses[index] === 'success') line.cells.forEach(c => { const el = document.querySelector(`.cell[data-index="${c}"]`); if (!el.classList.contains('error-cell')) el.classList.add('success-cell'); }); });
 
             const boardEl = document.getElementById('board');
-            if (successfulLinesCount === 8) {
-                document.body.classList.add('game-won');
-                boardEl.classList.add('board-won');
-            } else {
-                document.body.classList.remove('game-won');
-                boardEl.classList.remove('board-won');
-            }
+            if (successfulLinesCount === 8) { document.body.classList.add('game-won'); boardEl.classList.add('board-won'); } 
+            else { document.body.classList.remove('game-won'); boardEl.classList.remove('board-won'); }
         }
 
         function renderSolution(containerId, gridData) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = ''; 
+            const container = document.getElementById(containerId); container.innerHTML = ''; 
             if (!gridData) { container.classList.remove('visible'); return; }
             container.classList.add('visible');
-            
-            const rows = gridData.length; const cols = gridData[0].length;
-            const gridEl = document.createElement('div');
-            gridEl.className = 'sol-grid';
-            gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-            gridEl.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+            const rows = gridData.length, cols = gridData[0].length;
+            const gridEl = document.createElement('div'); gridEl.className = 'sol-grid';
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`; gridEl.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
             
             for(let r=0; r<rows; r++){
                 for(let c=0; c<cols; c++){
-                    const cell = document.createElement('div');
-                    cell.className = 'sol-cell';
+                    const cell = document.createElement('div'); cell.className = 'sol-cell';
                     if (gridData[r][c]) cell.style.backgroundColor = gridData[r][c];
                     gridEl.appendChild(cell);
                 }
@@ -546,87 +423,45 @@
             container.appendChild(gridEl);
         }
 
-        function getAllOrientations(baseCoords) {
-            const unique = new Set(); const orientations = [];
-            [false, true].forEach(flip => {
-                let coords = baseCoords.map(([r, c]) => [r, flip ? -c : c]);
-                for (let rot = 0; rot < 4; rot++) {
-                    coords = coords.map(([r, c]) => [c, -r]);
-                    let minR = Math.min(...coords.map(pt => pt[0])); 
-                    let minC = Math.min(...coords.map(pt => pt[1]));
-                    let normalized = coords.map(([r, c]) => [r - minR, c - minC]);
-                    normalized.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-                    
-                    const hash = JSON.stringify(normalized);
-                    if (!unique.has(hash)) { 
-                        unique.add(hash); 
-                        const w = Math.max(...normalized.map(pt => pt[1])) + 1;
-                        const h = Math.max(...normalized.map(pt => pt[0])) + 1;
-                        orientations.push({ coords: normalized, w, h }); 
-                    }
-                }
-            });
-            return orientations;
-        }
-
-        function getBaseCoords(size, variantId) {
-            return SHAPE_DATA[size].variants[variantId].map(i => [Math.floor(i / 3), i % 3]);
-        }
-
-        function attemptPacking(s1, s2, s3, colors) {
+        // --- OPTIMIZED MATH ALGORITHM ---
+        function attemptPacking(s1, s2, s3) {
             const cacheKey = [`${s1.size}-${s1.variant}`, `${s2.size}-${s2.variant}`, `${s3.size}-${s3.variant}`].sort().join('|');
-            if (packingCache[cacheKey] !== undefined) return packingCache[cacheKey];
+            if (PACKING_CACHE[cacheKey] !== undefined) return PACKING_CACHE[cacheKey];
 
-            const shapes = [
-                { s: s1, c: colors[0] },
-                { s: s2, c: colors[1] },
-                { s: s3, c: colors[2] }
-            ].sort((a, b) => b.s.size - a.s.size); 
+            const shapes = [ { s: s1, c: SHAPE_DATA[s1.size].color }, { s: s2, c: SHAPE_DATA[s2.size].color }, { s: s3, c: SHAPE_DATA[s3.size].color } ].sort((a, b) => b.s.size - a.s.size); 
+            const grouped = [ STATIC_GEOMETRY_CACHE[`${shapes[0].s.size}-${shapes[0].s.variant}`], STATIC_GEOMETRY_CACHE[`${shapes[1].s.size}-${shapes[1].s.variant}`], STATIC_GEOMETRY_CACHE[`${shapes[2].s.size}-${shapes[2].s.variant}`] ];
+            const colors = [shapes[0].c, shapes[1].c, shapes[2].c];
 
-            const o1 = getAllOrientations(getBaseCoords(shapes[0].s.size, shapes[0].s.variant));
-            const o2 = getAllOrientations(getBaseCoords(shapes[1].s.size, shapes[1].s.variant));
-            const o3 = getAllOrientations(getBaseCoords(shapes[2].s.size, shapes[2].s.variant));
-            const ordColors = [shapes[0].c, shapes[1].c, shapes[2].c];
-
-            const res = runDFS(o1, o2, o3, 3, 5, ordColors) || runDFS(o1, o2, o3, 5, 3, ordColors);
-            packingCache[cacheKey] = res; 
-            return res;
+            const res = runDFS(grouped, 3, 5, colors) || runDFS(grouped, 5, 3, colors);
+            PACKING_CACHE[cacheKey] = res; return res;
         }
 
-        function runDFS(o1, o2, o3, rows, cols, colors) {
-            const shapesGrouped = [o1, o2, o3];
+        function runDFS(shapesGrouped, rows, cols, colors) {
             let solution = null;
             function solve(grid, depth) {
                 if (depth === 3) { solution = grid.map(row => [...row]); return true; }
-                
                 for (let orient of shapesGrouped[depth]) {
+                    if (orient.h > rows || orient.w > cols) continue; // Instantly prune impossible fits
                     for (let r = 0; r <= rows - orient.h; r++) {
                         for (let c = 0; c <= cols - orient.w; c++) {
-                            if (canPlace(grid, orient.coords, r, c)) {
-                                place(grid, orient.coords, r, c, colors[depth]); 
+                            let canPlace = true;
+                            for (let [sr, sc] of orient.coords) { if (grid[r + sr][c + sc] !== null) { canPlace = false; break; } }
+                            if (canPlace) {
+                                for (let [sr, sc] of orient.coords) grid[r + sr][c + sc] = colors[depth];
                                 if (solve(grid, depth + 1)) return true;
-                                place(grid, orient.coords, r, c, null);
+                                for (let [sr, sc] of orient.coords) grid[r + sr][c + sc] = null;
                             }
                         }
                     }
                 }
                 return false;
             }
-            const emptyGrid = Array(rows).fill(null).map(() => Array(cols).fill(null));
-            solve(emptyGrid, 0);
+            solve(Array(rows).fill(null).map(() => Array(cols).fill(null)), 0);
             return solution;
         }
 
-        function canPlace(grid, shapeCoords, offsetR, offsetC) {
-            for (let [r, c] of shapeCoords) {
-                if (grid[r + offsetR][c + offsetC] !== null) return false;
-            }
-            return true;
-        }
-
-        function place(grid, shapeCoords, offsetR, offsetC, val) {
-            for (let [r, c] of shapeCoords) { grid[r + offsetR][c + offsetC] = val; }
-        }
+        // Boot
+        init();
     </script>
 </body>
 </html>
