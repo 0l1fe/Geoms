@@ -6,45 +6,70 @@
     <title>Geometric Magic Square</title>
     <style>
         :root {
+            /* Desktop Sizes */
             --cell-size: 110px;
-            --gap: 10px;
-            --viz-offset: -80px;
+            --gap: 12px;
+            --viz-offset: -85px;
             --viz-size: 64px;
+            --shape-block-size: 26px;
         }
 
-        @media (max-width: 550px) {
+        /* Tablet / Large Phones */
+        @media (max-width: 600px) {
             :root {
                 --cell-size: 80px;
                 --gap: 8px;
                 --viz-offset: -60px;
-                --viz-size: 50px;
+                --viz-size: 46px;
+                --shape-block-size: 20px;
+            }
+        }
+
+        /* Small Phones (iPhone SE, older Androids) - Guarantees NO cutoff */
+        @media (max-width: 400px) {
+            :root {
+                --cell-size: 65px;
+                --gap: 6px;
+                --viz-offset: -50px;
+                --viz-size: 38px;
+                --shape-block-size: 16px;
             }
         }
 
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
-            background-color: #f4f6f8; color: #343a40; margin: 0; padding: 20px 10px; 
-            text-align: center; display: flex; flex-direction: column; align-items: center; 
-            user-select: none; -webkit-user-select: none; 
-            transition: background-color 1.5s ease; overscroll-behavior-y: contain; 
+            /* Native Rounded System Fonts */
+            font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f4f8; 
+            color: #1e293b; 
+            margin: 0; 
+            padding: 30px 10px; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            user-select: none; 
+            -webkit-user-select: none; 
+            transition: background-color 1s ease; 
+            overscroll-behavior-y: contain; 
             overflow-x: hidden;
         }
-        body.game-won { background-color: #fffaf0; }
         
-        h1 { font-size: 1.5rem; margin-bottom: 5px; color: #212529; }
-        p { color: #6c757d; font-size: 0.9rem; margin-bottom: 20px; max-width: 400px; line-height: 1.4; }
+        body.game-won { background-color: #fefce8; }
+        
+        h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; color: #0f172a; }
+        p { color: #64748b; font-size: 0.95rem; margin-bottom: 25px; max-width: 400px; line-height: 1.5; font-weight: 500;}
 
         .controls { display: flex; justify-content: center; margin-bottom: 30px; }
         
         .btn-reset {
-            display: flex; align-items: center; gap: 6px; background: #fff;
-            border: 1px solid #dee2e6; color: #495057; cursor: pointer;
-            font-size: 0.9rem; font-weight: 600; padding: 8px 16px;
-            border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: all 0.2s; touch-action: manipulation;
-            appearance: none; -webkit-appearance: none; outline: none;
+            display: flex; align-items: center; gap: 6px; background: #ffffff;
+            border: 2px solid #e2e8f0; color: #475569; cursor: pointer;
+            font-size: 0.95rem; font-weight: 700; padding: 10px 20px;
+            border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); touch-action: manipulation;
+            appearance: none; -webkit-appearance: none; outline: none; font-family: inherit;
         }
-        .btn-reset:active { transform: scale(0.95); background: #f8f9fa; color: #ff6b6b; border-color: #ff6b6b; }
+        .btn-reset:active { transform: scale(0.95); background: #f8fafc; color: #ef4444; border-color: #ef4444; box-shadow: none;}
 
         .board-wrapper { margin: 30px auto 60px auto; display: flex; justify-content: center; position: relative; }
         .board-anchor { position: relative; display: block; } 
@@ -52,127 +77,145 @@
         .board { 
             display: grid; grid-template-columns: repeat(3, var(--cell-size)); 
             grid-template-rows: repeat(3, var(--cell-size)); gap: var(--gap); 
-            background: #e9ecef; padding: 12px; border-radius: 12px; 
-            transition: box-shadow 1.5s ease, border-color 1.5s ease, background-color 1.5s ease; 
-            border: 2px solid transparent; position: relative; z-index: 10;
+            background: #ffffff; padding: 14px; border-radius: 20px; 
+            transition: box-shadow 1s ease, border-color 1s ease, background-color 1s ease; 
+            border: 2px solid #e2e8f0; position: relative; z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
         }
-        .board.board-won { border-color: #f1c40f; box-shadow: 0 0 40px rgba(241, 196, 15, 0.35); background: #fdfbf5; }
+        .board.board-won { border-color: #facc15; box-shadow: 0 0 50px rgba(250, 204, 21, 0.4); background: #fffdf2; }
         
+        /* UPDATED: Solid Native Trays instead of Dashed Dots */
         .cell { 
-            width: var(--cell-size); height: var(--cell-size); background: white; 
-            border: 2px dashed #adb5bd; border-radius: 8px; display: flex; 
-            align-items: center; justify-content: center; transition: all 0.2s ease; 
+            width: var(--cell-size); height: var(--cell-size); background: #f8fafc; 
+            border: 2px solid #e2e8f0; border-radius: 16px; display: flex; 
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.03);
+            align-items: center; justify-content: center; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
             position: relative; cursor: pointer; touch-action: manipulation;
         }
-        .cell:active { transform: scale(0.96); border-color: #54a0ff; background: #f8f9fa; }
+        .cell:active { transform: scale(0.96); border-color: #3b82f6; background: #eff6ff; box-shadow: inset 0 3px 8px rgba(59, 130, 246, 0.1);}
         
-        .cell::after { content: '+'; font-size: 24px; color: #ced4da; position: absolute; z-index: 1; transition: opacity 0.2s; pointer-events: none; }
+        .cell::after { content: '+'; font-size: 28px; font-weight: 300; color: #cbd5e1; position: absolute; z-index: 1; transition: opacity 0.2s; pointer-events: none; }
         .cell.has-shape::after { opacity: 0; }
 
-        .cell.success-cell { background-color: #f1fbf7; border-color: #1dd1a1; box-shadow: inset 0 0 20px rgba(29, 209, 161, 0.15); border-style: solid; }
-        .cell.error-cell { background-color: #fff5f5; border-color: #ff6b6b; box-shadow: inset 0 0 20px rgba(255, 107, 107, 0.15); border-style: solid; }
+        /* Unified Success/Error Glows */
+        .cell.success-cell { background-color: #ecfdf5; border-color: #10b981; box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.15); border-style: solid; }
+        .cell.error-cell { background-color: #fef2f2; border-color: #ef4444; box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.15); border-style: solid; }
 
-        .cell .shape-container { height: auto; padding: 5px; box-shadow: none; border: none; background: transparent; z-index: 2; pointer-events: none;}
-        .cell .block-grid { --bs: calc(var(--cell-size) * 0.25); }
+        .cell .shape-container { height: auto; padding: 0; box-shadow: none; border: none; background: transparent; z-index: 2; pointer-events: none; transform: scale(1.1);}
 
-        /* FIXED: Solution Box Aspect Ratios */
+        /* Solid Geometric Solution Visualizers */
         .solution-box { 
             position: absolute; width: var(--viz-size); height: var(--viz-size); 
-            display: flex; align-items: center; justify-content: center; background: #fff; 
-            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 2px solid #e9ecef; 
-            opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; 
-            pointer-events: none; z-index: 5; transform: scale(0.5); 
+            display: flex; align-items: center; justify-content: center; background: #ffffff; 
+            border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 2px solid #e2e8f0; 
+            opacity: 0; transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            pointer-events: none; z-index: 5; transform: scale(0.5); padding: 4px; box-sizing: border-box;
         }
         .solution-box.visible { opacity: 1; transform: scale(1); }
-        .sol-grid { display: grid; gap: 1px; width: max-content; height: max-content; }
-        .sol-cell { width: 8px; height: 8px; border-radius: 1px; background: #f8f9fa; }
+        .sol-grid { display: grid; gap: 0; width: 100%; height: 100%; border-radius: 4px; overflow: hidden; }
+        .sol-cell { width: 100%; height: 100%; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.05); }
 
-        #sol-row-0 { top: calc(var(--cell-size) * 0.5 - var(--viz-size)/2 + 12px); right: var(--viz-offset); }
-        #sol-row-1 { top: calc(var(--cell-size) * 1.5 + var(--gap) - var(--viz-size)/2 + 12px); right: var(--viz-offset); }
-        #sol-row-2 { top: calc(var(--cell-size) * 2.5 + var(--gap)*2 - var(--viz-size)/2 + 12px); right: var(--viz-offset); }
-        #sol-col-0 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 0.5 - var(--viz-size)/2 + 12px); }
-        #sol-col-1 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 1.5 + var(--gap) - var(--viz-size)/2 + 12px); }
-        #sol-col-2 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 2.5 + var(--gap)*2 - var(--viz-size)/2 + 12px); }
+        /* Positioning Logic */
+        #sol-row-0 { top: calc(var(--cell-size) * 0.5 - var(--viz-size)/2 + 14px); right: var(--viz-offset); }
+        #sol-row-1 { top: calc(var(--cell-size) * 1.5 + var(--gap) - var(--viz-size)/2 + 14px); right: var(--viz-offset); }
+        #sol-row-2 { top: calc(var(--cell-size) * 2.5 + var(--gap)*2 - var(--viz-size)/2 + 14px); right: var(--viz-offset); }
+        #sol-col-0 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 0.5 - var(--viz-size)/2 + 14px); }
+        #sol-col-1 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 1.5 + var(--gap) - var(--viz-size)/2 + 14px); }
+        #sol-col-2 { bottom: var(--viz-offset); left: calc(var(--cell-size) * 2.5 + var(--gap)*2 - var(--viz-size)/2 + 14px); }
         #sol-diag-main { bottom: var(--viz-offset); right: var(--viz-offset); }
         #sol-diag-anti { bottom: var(--viz-offset); left: var(--viz-offset); } 
 
+        /* Solid Native Polyomino Shapes */
         .shape-container { 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            height: 90px; background: #fff; padding: 15px; border-radius: 12px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04); border: 1px solid #f1f3f5; 
-            cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; touch-action: manipulation;
+            height: 90px; background: #ffffff; padding: 15px; border-radius: 16px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04); border: 2px solid #f1f5f9; 
+            cursor: pointer; transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s; touch-action: manipulation;
         }
-        .shape-container:active { transform: scale(0.95); }
-        .block-grid { display: grid; gap: 2px; }
-        .block-cell { width: var(--bs, 20px); height: var(--bs, 20px); border-radius: 3px; }
-        .block-filled { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); }
+        .shape-container:active { transform: scale(0.92); box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-color: #e2e8f0; }
+        
+        .block-grid { display: grid; gap: 0; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .block-cell { width: var(--shape-block-size); height: var(--shape-block-size); }
+        .block-filled { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15); }
 
+        /* Frosted Glass Modal */
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.4); z-index: 1000; display: flex; 
+            background: rgba(15, 23, 42, 0.4); z-index: 1000; display: flex; 
             visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0.3s; 
-            backdrop-filter: blur(2px);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         }
         .modal-overlay.active { visibility: visible; opacity: 1; pointer-events: auto; }
         
+        /* Modal Responsive Formatting */
         .modal-content {
-            background: white; width: 100%; max-width: 500px; margin: auto;
-            border-radius: 20px; padding: 20px 15px 15px 15px;
-            box-sizing: border-box; transform: scale(0.95);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; 
-            max-height: 80vh; 
+            background: #ffffff; width: 100%; max-width: 500px; margin: auto;
+            border-radius: 24px; padding: 20px; box-sizing: border-box; 
+            transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); display: flex; flex-direction: column; max-height: 80vh; 
         }
         .modal-overlay.active .modal-content { transform: scale(1); }
 
         @media (max-width: 600px) {
             .modal-content {
-                margin: 0; margin-top: auto; 
-                border-radius: 20px 20px 0 0;
-                transform: translateY(100%);
-                max-height: 85vh; padding-bottom: 30px; 
+                margin: 0; margin-top: auto; border-radius: 28px 28px 0 0;
+                transform: translateY(100%); max-height: 85vh; padding-bottom: 35px; 
             }
             .modal-overlay.active .modal-content { transform: translateY(0); }
         }
 
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f1f3f5; flex-shrink: 0;}
-        .modal-title { font-weight: bold; font-size: 1.1rem; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #f1f5f9; flex-shrink: 0;}
+        .modal-title { font-weight: 800; font-size: 1.2rem; color: #0f172a;}
         .modal-actions { display: flex; gap: 10px; }
         
-        .btn-clear { background: #fff5f5; color: #ff6b6b; border: 1px solid #ffc9c9; padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; touch-action: manipulation; appearance: none; -webkit-appearance: none;}
-        .btn-clear:active { background: #ffe3e3; }
-        .btn-clear:disabled { background: #f8f9fa; color: #adb5bd; border-color: #e9ecef; cursor: not-allowed; }
+        .btn-clear { background: #fef2f2; color: #ef4444; border: 2px solid #fecaca; padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; touch-action: manipulation; appearance: none; -webkit-appearance: none; font-family: inherit;}
+        .btn-clear:active { transform: scale(0.95); background: #fee2e2; }
+        .btn-clear:disabled { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; transform: none;}
         
-        .btn-close { background: transparent; border: none; font-size: 1.5rem; color: #adb5bd; cursor: pointer; line-height: 1; padding: 0 5px; touch-action: manipulation; appearance: none; -webkit-appearance: none;}
+        .btn-close { background: #f1f5f9; color: #64748b; border: none; font-size: 1.2rem; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; touch-action: manipulation; appearance: none; -webkit-appearance: none;}
+        .btn-close:active { transform: scale(0.90); background: #e2e8f0;}
 
-        .tabs-wrapper { overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; flex-shrink: 0;}
-        .tabs-wrapper::-webkit-scrollbar { display: none; }
-        .tabs-container { display: flex; overflow-x: auto; gap: 8px; padding: 5px 5px 10px 5px; -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: center; width: max-content;}
-        .tab-btn { background: white; padding: 10px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); cursor: pointer; border: 1px solid #e9ecef; transition: all 0.2s ease; touch-action: manipulation; }
+        /* TAB MENU (Keypad Style) */
+        .tabs-wrapper { padding-bottom: 15px; flex-shrink: 0; width: 100%; }
+        .tabs-container { 
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; 
+            width: 100%; box-sizing: border-box; padding: 0 5px;
+        }
+        .tab-btn { 
+            background: #ffffff; width: 44px; height: 44px; 
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: 14px; font-weight: 800; font-size: 16px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; 
+            border: 2px solid #f1f5f9; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            touch-action: manipulation; color: #475569; font-family: inherit; 
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
         
-        .tab-btn.used { opacity: 0.4; background: #f8f9fa !important; border-color: #dee2e6 !important; color: #adb5bd !important; pointer-events: none;}
+        .tab-btn.used { opacity: 0.3; background: #f8fafc !important; border-color: #e2e8f0 !important; color: #94a3b8 !important; pointer-events: none;}
         
-        .tab-btn.active[data-size="1"] { background: #ff6b6b; color: white; border-color: #ff6b6b; box-shadow: 0 4px 12px #ff6b6b66; } 
-        .tab-btn.active[data-size="2"] { background: #feca57; color: white; border-color: #feca57; box-shadow: 0 4px 12px #feca5766; } 
-        .tab-btn.active[data-size="3"] { background: #1dd1a1; color: white; border-color: #1dd1a1; box-shadow: 0 4px 12px #1dd1a166; } 
-        .tab-btn.active[data-size="4"] { background: #5f27cd; color: white; border-color: #5f27cd; box-shadow: 0 4px 12px #5f27cd66; } 
-        .tab-btn.active[data-size="5"] { background: #54a0ff; color: white; border-color: #54a0ff; box-shadow: 0 4px 12px #54a0ff66; } 
-        .tab-btn.active[data-size="6"] { background: #ee5253; color: white; border-color: #ee5253; box-shadow: 0 4px 12px #ee525366; } 
-        .tab-btn.active[data-size="7"] { background: #10ac84; color: white; border-color: #10ac84; box-shadow: 0 4px 12px #10ac8466; } 
-        .tab-btn.active[data-size="8"] { background: #2e86de; color: white; border-color: #2e86de; box-shadow: 0 4px 12px #2e86de66; } 
-        .tab-btn.active[data-size="9"] { background: #8395a7; color: white; border-color: #8395a7; box-shadow: 0 4px 12px #8395a766; } 
+        .tab-btn.active[data-size="1"] { background: #ff6b6b; color: white; border-color: #ff6b6b; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); } 
+        .tab-btn.active[data-size="2"] { background: #feca57; color: white; border-color: #feca57; box-shadow: 0 4px 15px rgba(254, 202, 87, 0.3); } 
+        .tab-btn.active[data-size="3"] { background: #1dd1a1; color: white; border-color: #1dd1a1; box-shadow: 0 4px 15px rgba(29, 209, 161, 0.3); } 
+        .tab-btn.active[data-size="4"] { background: #5f27cd; color: white; border-color: #5f27cd; box-shadow: 0 4px 15px rgba(95, 39, 205, 0.3); } 
+        .tab-btn.active[data-size="5"] { background: #54a0ff; color: white; border-color: #54a0ff; box-shadow: 0 4px 15px rgba(84, 160, 255, 0.3); } 
+        .tab-btn.active[data-size="6"] { background: #ee5253; color: white; border-color: #ee5253; box-shadow: 0 4px 15px rgba(238, 82, 83, 0.3); } 
+        .tab-btn.active[data-size="7"] { background: #10ac84; color: white; border-color: #10ac84; box-shadow: 0 4px 15px rgba(16, 172, 132, 0.3); } 
+        .tab-btn.active[data-size="8"] { background: #2e86de; color: white; border-color: #2e86de; box-shadow: 0 4px 15px rgba(46, 134, 222, 0.3); } 
+        .tab-btn.active[data-size="9"] { background: #8395a7; color: white; border-color: #8395a7; box-shadow: 0 4px 15px rgba(131, 149, 167, 0.3); } 
 
         .gallery { 
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); 
             gap: 15px; padding: 5px; overflow-y: auto; align-content: flex-start; 
             flex-grow: 1; scrollbar-width: none; -webkit-overflow-scrolling: touch;
         }
         .gallery::-webkit-scrollbar { display: none; }
 
         @media (hover: hover) {
-            .btn-reset:hover { background: #f8f9fa; color: #ff6b6b; border-color: #ff6b6b; }
-            .cell:hover { border-color: #54a0ff; background: #f8f9fa; }
-            .btn-clear:hover { background: #ffe3e3; }
+            .btn-reset:hover { background: #f8fafc; color: #ef4444; border-color: #ef4444; }
+            .cell:hover { border-color: #3b82f6; background: #f8fafc; }
+            .btn-clear:hover { background: #fee2e2; border-color: #fca5a5; }
+            .btn-close:hover { background: #e2e8f0; }
+            .shape-container:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
         }
     </style>
 </head>
@@ -183,7 +226,7 @@
 
     <div class="controls">
         <button type="button" class="btn-reset" onclick="clearBoard()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
             Reset Board
         </button>
     </div>
@@ -222,7 +265,9 @@
                 <div class="modal-title">Select Shape</div>
                 <div class="modal-actions">
                     <button type="button" class="btn-clear" id="btn-clear-cell" onclick="clearActiveCell()">Clear Box</button>
-                    <button type="button" class="btn-close" onclick="closeModal()">&times;</button>
+                    <button type="button" class="btn-close" onclick="closeModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
                 </div>
             </div>
             <div class="tabs-wrapper">
@@ -261,7 +306,6 @@
         let lineSolutions = new Array(8).fill(null);
         let activeCellIndex = null;
         
-        // GLOBAL CACHE FOR OPTIMIZATION
         const packingCache = {}; 
 
         function handleOverlayClick(e) {
@@ -322,17 +366,6 @@
             document.querySelectorAll('.tab-btn').forEach(b => {
                 b.classList.toggle('active', parseInt(b.dataset.size) === size);
             });
-            
-            setTimeout(() => {
-                try {
-                    const activeTab = document.querySelector('.tab-btn.active');
-                    if (activeTab && activeTab.parentElement) {
-                        const container = activeTab.parentElement;
-                        const scrollPos = activeTab.offsetLeft - (container.offsetWidth / 2) + (activeTab.offsetWidth / 2);
-                        container.scrollLeft = scrollPos;
-                    }
-                } catch(e) { }
-            }, 10);
 
             const gallery = document.getElementById('gallery');
             gallery.innerHTML = '';
@@ -364,8 +397,8 @@
 
             const grid = document.createElement('div');
             grid.className = 'block-grid';
-            grid.style.gridTemplateColumns = `repeat(${cols}, var(--bs, 20px))`;
-            grid.style.gridTemplateRows = `repeat(${rows}, var(--bs, 20px))`;
+            grid.style.gridTemplateColumns = `repeat(${cols}, var(--shape-block-size))`;
+            grid.style.gridTemplateRows = `repeat(${rows}, var(--shape-block-size))`;
             
             for (let r = minR; r <= maxR; r++) {
                 for (let c = minC; c <= maxC; c++) {
@@ -392,9 +425,9 @@
             const shapeDOM = createShapeDOM(size, variantId, SHAPE_DATA[size].color, SHAPE_DATA[size].variants[variantId]);
             cellEl.appendChild(shapeDOM);
             cellEl.classList.add('has-shape');
-            
             boardState[cellIndex] = { size, variant: variantId };
-            evaluateBoard();
+            
+            setTimeout(evaluateBoard, 10);
         }
 
         function clearCell(cellIndex) {
@@ -402,7 +435,7 @@
             cellEl.innerHTML = '';
             cellEl.classList.remove('has-shape');
             boardState[cellIndex] = null;
-            evaluateBoard();
+            setTimeout(evaluateBoard, 10);
         }
 
         function clearBoard() {
@@ -417,7 +450,7 @@
             }
             
             LINES.forEach(line => renderSolution(line.id, null));
-            evaluateBoard(); 
+            setTimeout(evaluateBoard, 10);
         }
 
         function evaluateBoard() {
@@ -500,8 +533,8 @@
             const rows = gridData.length; const cols = gridData[0].length;
             const gridEl = document.createElement('div');
             gridEl.className = 'sol-grid';
-            gridEl.style.gridTemplateColumns = `repeat(${cols}, 8px)`;
-            gridEl.style.gridTemplateRows = `repeat(${rows}, 8px)`;
+            gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            gridEl.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
             
             for(let r=0; r<rows; r++){
                 for(let c=0; c<cols; c++){
@@ -514,7 +547,6 @@
             container.appendChild(gridEl);
         }
 
-        // OPTIMIZED ALGORITHM: Bounding Box Pre-calculation
         function getAllOrientations(baseCoords) {
             const unique = new Set(); const orientations = [];
             [false, true].forEach(flip => {
@@ -542,7 +574,6 @@
             return SHAPE_DATA[size].variants[variantId].map(i => [Math.floor(i / 3), i % 3]);
         }
 
-        // OPTIMIZED ALGORITHM: Largest-First Sorting & Global Memoization
         function attemptPacking(s1, s2, s3, colors) {
             const cacheKey = [`${s1.size}-${s1.variant}`, `${s2.size}-${s2.variant}`, `${s3.size}-${s3.variant}`].sort().join('|');
             if (packingCache[cacheKey] !== undefined) return packingCache[cacheKey];
@@ -551,7 +582,7 @@
                 { s: s1, c: colors[0] },
                 { s: s2, c: colors[1] },
                 { s: s3, c: colors[2] }
-            ].sort((a, b) => b.s.size - a.s.size);
+            ].sort((a, b) => b.s.size - a.s.size); 
 
             const o1 = getAllOrientations(getBaseCoords(shapes[0].s.size, shapes[0].s.variant));
             const o2 = getAllOrientations(getBaseCoords(shapes[1].s.size, shapes[1].s.variant));
@@ -559,11 +590,10 @@
             const ordColors = [shapes[0].c, shapes[1].c, shapes[2].c];
 
             const res = runDFS(o1, o2, o3, 3, 5, ordColors) || runDFS(o1, o2, o3, 5, 3, ordColors);
-            packingCache[cacheKey] = res;
+            packingCache[cacheKey] = res; 
             return res;
         }
 
-        // OPTIMIZED ALGORITHM: Bounding Limits constraint
         function runDFS(o1, o2, o3, rows, cols, colors) {
             const shapesGrouped = [o1, o2, o3];
             let solution = null;
